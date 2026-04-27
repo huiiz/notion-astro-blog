@@ -1,0 +1,8 @@
+name = "notion-webhook-relay"
+main = "src/index.js"
+compatibility_date = "2026-04-26"
+
+[vars]
+GITHUB_OWNER = "your-github-username"
+GITHUB_REPO = "your-blog-repo"
+NOTION_WEBHOOK_EVENT_TYPE = "notion-content-updated"

@@ -1,0 +1,91 @@
+---
+import {
+  formatDate,
+  getAllCategories,
+  getAllPosts,
+  getAllTags,
+  getCategoryCounts,
+  getLatestUpdatedPost,
+  getTagCounts,
+  slugifyCategory,
+  slugifyTag
+} from "../lib/posts";
+import { siteConfig } from "../lib/site";
+
+const latestUpdated = getLatestUpdatedPost();
+const posts = getAllPosts();
+const tags = getAllTags();
+const categories = getAllCategories();
+const tagCounts = getTagCounts().slice(0, 12);
+const categoryCounts = getCategoryCounts().slice(0, 6);
+const runtimeDays = Math.max(
+  1,
+  Math.floor((Date.now() - new Date(siteConfig.runtimeSince).getTime()) / 86400000)
+);
+---
+
+<aside class="home-sidebar">
+  <section class="sidebar-card author-card">
+    <div class="author-card-top">
+      <img src={siteConfig.avatar} alt={siteConfig.author} />
+      <div>
+        <h3>{siteConfig.author}</h3>
+        <p>{siteConfig.motto}</p>
+      </div>
+    </div>
+
+    <div class="author-stats">
+      <a href={`${import.meta.env.BASE_URL}archive/`}>
+        <strong>{posts.length}</strong>
+        <span>文章</span>
+      </a>
+      <a href={`${import.meta.env.BASE_URL}tags/`}>
+        <strong>{tags.length}</strong>
+        <span>标签</span>
+      </a>
+      <a href={`${import.meta.env.BASE_URL}categories/`}>
+        <strong>{categories.length}</strong>
+        <span>分类</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="sidebar-card sidebar-section">
+    <div class="sidebar-section-head">
+      <h3>常看标签</h3>
+      <a href={`${import.meta.env.BASE_URL}tags/`}>全部</a>
+    </div>
+    <div class="sidebar-tag-cloud">
+      {tagCounts.map((item) => (
+        <a href={`${import.meta.env.BASE_URL}tags/${slugifyTag(item.name)}/`}>
+          <span>{item.name}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="sidebar-card sidebar-section">
+    <div class="sidebar-section-head">
+      <h3>分类浏览</h3>
+      <a href={`${import.meta.env.BASE_URL}categories/`}>全部</a>
+    </div>
+    <div class="sidebar-category-list">
+      {categoryCounts.map((item) => (
+        <a href={`${import.meta.env.BASE_URL}categories/${slugifyCategory(item.name)}/`}>
+          <span>{item.name}</span>
+          <small>{item.count}</small>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="sidebar-card sidebar-section">
+    <div class="sidebar-section-head">
+      <h3>站点信息</h3>
+    </div>
+    <div class="sidebar-webinfo">
+      <div><span>运行时间</span><strong>{runtimeDays} 天</strong></div>
+      <div><span>最后更新</span><strong>{latestUpdated ? formatDate(latestUpdated.updatedAt || latestUpdated.publishedAt) : "--"}</strong></div>
+    </div>
+  </section>
+</aside>

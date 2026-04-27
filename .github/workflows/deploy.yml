@@ -1,0 +1,93 @@
+name: Build and Publish Blog
+
+on:
+  push:
+    branches: [main]
+  repository_dispatch:
+    types: [notion-content-updated]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "blog-publish"
+  cancel-in-progress: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v6
+
+      - name: Derive Astro site settings
+        shell: bash
+        run: |
+          if [ -n "${{ vars.SITE_URL }}" ]; then
+            echo "SITE_URL=${{ vars.SITE_URL }}" >> "$GITHUB_ENV"
+          else
+            echo "SITE_URL=https://example.com" >> "$GITHUB_ENV"
+          fi
+          if [ -n "${{ vars.BASE_PATH }}" ]; then
+            echo "BASE_PATH=${{ vars.BASE_PATH }}" >> "$GITHUB_ENV"
+          else
+            echo "BASE_PATH=" >> "$GITHUB_ENV"
+          fi
+          if [ -n "${{ vars.PAGES_TARGET_REPOSITORY }}" ]; then
+            echo "PAGES_TARGET_REPOSITORY=${{ vars.PAGES_TARGET_REPOSITORY }}" >> "$GITHUB_ENV"
+          else
+            echo "PAGES_TARGET_REPOSITORY=${{ github.repository }}" >> "$GITHUB_ENV"
+          fi
+          if [ -n "${{ vars.PAGES_TARGET_BRANCH }}" ]; then
+            echo "PAGES_TARGET_BRANCH=${{ vars.PAGES_TARGET_BRANCH }}" >> "$GITHUB_ENV"
+          else
+            echo "PAGES_TARGET_BRANCH=gh-pages" >> "$GITHUB_ENV"
+          fi
+          if [ -n "${{ vars.SITE_CNAME }}" ]; then
+            echo "SITE_CNAME=${{ vars.SITE_CNAME }}" >> "$GITHUB_ENV"
+          else
+            echo "SITE_CNAME=" >> "$GITHUB_ENV"
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build site
+        run: npm run build
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          PUBLIC_BLOG_TITLE: ${{ vars.PUBLIC_BLOG_TITLE }}
+          PUBLIC_BLOG_SUBTITLE: ${{ vars.PUBLIC_BLOG_SUBTITLE }}
+          PUBLIC_BLOG_DESCRIPTION: ${{ vars.PUBLIC_BLOG_DESCRIPTION }}
+          PUBLIC_BLOG_AUTHOR: ${{ vars.PUBLIC_BLOG_AUTHOR }}
+          PUBLIC_BLOG_MOTTO: ${{ vars.PUBLIC_BLOG_MOTTO }}
+          PUBLIC_BLOG_GITHUB: ${{ vars.PUBLIC_BLOG_GITHUB }}
+          PUBLIC_BLOG_PROFILE: ${{ vars.PUBLIC_BLOG_PROFILE }}
+          PUBLIC_BLOG_AVATAR: ${{ vars.PUBLIC_BLOG_AVATAR }}
+          PUBLIC_BLOG_LOGO: ${{ vars.PUBLIC_BLOG_LOGO }}
+          PUBLIC_BLOG_DEFAULT_COVER: ${{ vars.PUBLIC_BLOG_DEFAULT_COVER }}
+          PUBLIC_BLOG_RUNTIME_SINCE: ${{ vars.PUBLIC_BLOG_RUNTIME_SINCE }}
+          PUBLIC_BLOG_RECORD_TEXT: ${{ vars.PUBLIC_BLOG_RECORD_TEXT }}
+          PUBLIC_BLOG_RECORD_LINK: ${{ vars.PUBLIC_BLOG_RECORD_LINK }}
+          SITE_URL: ${{ env.SITE_URL }}
+          BASE_PATH: ${{ env.BASE_PATH }}
+
+      - name: Publish static site
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          personal_token: ${{ secrets.PUBLISH_TO_PAGES_TOKEN }}
+          external_repository: ${{ env.PAGES_TARGET_REPOSITORY }}
+          publish_branch: ${{ env.PAGES_TARGET_BRANCH }}
+          publish_dir: ./dist
+          cname: ${{ env.SITE_CNAME }}
+          force_orphan: true

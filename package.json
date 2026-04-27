@@ -1,0 +1,24 @@
+{
+  "name": "notion-astro-blog",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "prebuild": "node scripts/fetch-notion.mjs",
+    "build": "astro build",
+    "preview": "astro preview",
+    "sync:notion": "node scripts/fetch-notion.mjs",
+    "migrate:legacy": "node scripts/migrate-legacy-content.mjs",
+    "setup:notion:starter": "node scripts/setup-notion-starter.mjs"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.11",
+    "@astrojs/sitemap": "^3.6.0",
+    "@notionhq/client": "^4.0.1",
+    "astro": "^5.14.1",
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.1",
+    "marked": "^18.0.2"
+  }
+}

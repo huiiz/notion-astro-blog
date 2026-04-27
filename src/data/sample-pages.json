@@ -1,0 +1,30 @@
+[
+  {
+    "id": "sample-page-about",
+    "type": "页面",
+    "title": "关于",
+    "slug": "about",
+    "summary": "一个示例页面，用来展示如何把单页内容也放进同一个博客结构里。",
+    "publishedAt": "2026-04-27",
+    "updatedAt": "2026-04-27",
+    "tags": ["建站"],
+    "categories": ["页面"],
+    "featured": false,
+    "cover": "/img/starter-cover.svg",
+    "html": "<p>这里可以介绍你是谁、在做什么、想长期记录哪些主题，也可以放联系方式或个人链接。</p><p>等你接入自己的 Notion 数据库后，这个示例页面会被真实内容替换。</p>"
+  },
+  {
+    "id": "sample-page-link",
+    "type": "页面",
+    "title": "友链",
+    "slug": "link",
+    "summary": "一个示例友链页，用来保证模板在未接入 Notion 时也能完整预览导航结构。",
+    "publishedAt": "2026-04-27",
+    "updatedAt": "2026-04-27",
+    "tags": ["建站"],
+    "categories": ["页面"],
+    "featured": false,
+    "cover": "/img/starter-cover.svg",
+    "html": "<p>这里默认用于放置友情链接、合作伙伴或推荐站点。</p><p>如果你还没有友链内容，也可以先保留这个页面，后续再补充。</p>"
+  }
+]

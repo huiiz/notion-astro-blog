@@ -1,0 +1,32 @@
+---
+import { siteConfig } from "../lib/site";
+
+interface Props {
+  title?: string;
+  subtitle?: string;
+  home?: boolean;
+}
+
+const { title, subtitle, home = false } = Astro.props;
+const heroTitle = title || siteConfig.title;
+const heroSubtitle = subtitle || siteConfig.description;
+---
+
+<header class:list={["page-header", home ? "is-home" : "is-page"]} style={`background-image: url(${siteConfig.defaultCover});`}>
+  <div class="page-header-mask"></div>
+  <div class:list={["page-header-inner", home ? "home-hero" : "page-hero"]}>
+    {home ? (
+      <div class="hero-panel">
+        <span class="hero-kicker">个人博客</span>
+        <h1>{heroTitle}</h1>
+        <p>{heroSubtitle}</p>
+      </div>
+    ) : (
+      <>
+        <span class="hero-kicker">写作 / 归档 / 笔记</span>
+        <h1>{heroTitle}</h1>
+        {heroSubtitle && <p>{heroSubtitle}</p>}
+      </>
+    )}
+  </div>
+</header>

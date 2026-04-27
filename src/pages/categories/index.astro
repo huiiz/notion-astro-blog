@@ -1,0 +1,29 @@
+---
+import PageHeader from "../../components/PageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCategoryCounts, slugifyCategory } from "../../lib/posts";
+
+const categories = getCategoryCounts();
+---
+
+<BaseLayout title="分类">
+  <PageHeader title="分类" subtitle="按系列、主题和知识脉络重新浏览这些文章，更适合成片地阅读。" />
+  <main class="layout layout-page" id="content-inner">
+    <div class="tag-cloud-card">
+      <div class="home-section-title cloud-title">
+        <div>
+          <span class="section-kicker">分类目录</span>
+          <h2>全部分类</h2>
+        </div>
+      </div>
+      <div class="tag-cloud-grid">
+        {categories.map((item) => (
+          <a href={`${import.meta.env.BASE_URL}categories/${slugifyCategory(item.name)}/`}>
+            <span>{item.name}</span>
+            <small>{item.count}</small>
+          </a>
+        ))}
+      </div>
+    </div>
+  </main>
+</BaseLayout>

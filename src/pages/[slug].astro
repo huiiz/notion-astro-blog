@@ -1,0 +1,52 @@
+---
+import PageHeader from "../components/PageHeader.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getFriendGroups, getAllPages } from "../lib/pages";
+
+const friendGroups = getFriendGroups();
+
+export function getStaticPaths() {
+  return getAllPages().map((page) => ({
+    params: { slug: page.slug },
+    props: { page }
+  }));
+}
+
+const { page } = Astro.props;
+const isLinkPage = page.slug === "link";
+---
+
+<BaseLayout title={page.title} description={page.summary}>
+  <PageHeader title={page.title} subtitle={page.summary} />
+
+  <main class="layout layout-reading" id="content-inner">
+    <article id="page" class="reading-article">
+      {page.html && <div class="post-content reading-content" set:html={page.html} />}
+
+      {isLinkPage && (
+        <div class="friend-groups">
+          {friendGroups.map((group) => (
+            <section class="friend-group">
+              <header class="friend-group-header">
+                <span class="section-kicker">友情链接</span>
+                <h2>{group.className}</h2>
+                {group.classDesc && <p>{group.classDesc}</p>}
+              </header>
+              <div class="friend-grid">
+                {group.links.map((item) => (
+                  <a class="friend-card" href={item.link} target="_blank" rel="noreferrer">
+                    <img src={item.avatar} alt={item.name} loading="lazy" />
+                    <div>
+                      <strong>{item.name}</strong>
+                      <p>{item.descr}</p>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+    </article>
+  </main>
+</BaseLayout>

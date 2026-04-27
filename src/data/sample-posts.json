@@ -1,0 +1,15 @@
+[
+  {
+    "id": "sample-post",
+    "title": "欢迎来到你的 Notion 博客",
+    "slug": "hello-notion-blog",
+    "summary": "在你接入 Notion 数据库之前，这篇示例文章会先显示在首页，方便你确认站点结构、样式和部署流程都已经正常工作。",
+    "publishedAt": "2026-04-27",
+    "updatedAt": "2026-04-27",
+    "tags": ["建站", "Notion", "Astro"],
+    "categories": ["博客"],
+    "featured": true,
+    "cover": "/img/starter-cover.svg",
+    "html": "<p>这个项目的目标很明确：继续在 Notion 里写作，用 Astro 生成静态页面，再部署到 GitHub Pages。</p><p>如果你现在看到的是这篇示例文章，说明站点本地已经可以正常运行。接下来只要填入自己的 Notion Token 和数据库 ID，就可以切换到真实内容。</p><h2>你可以先这样检查</h2><ul><li>打开首页，确认文章卡片、侧边栏和整体排版是否正常。</li><li>进入文章页，确认目录、前后文章和回到顶部等细节是否可用。</li><li>完成后运行 <code>npm run sync:notion</code>，再把内容切换到你自己的 Notion 数据库。</li></ul>"
+  }
+]

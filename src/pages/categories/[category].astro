@@ -1,0 +1,29 @@
+---
+import PostCard from "../../components/PostCard.astro";
+import PageHeader from "../../components/PageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getAllCategories, getPostsByCategory, slugifyCategory } from "../../lib/posts";
+
+export function getStaticPaths() {
+  return getAllCategories().map((category) => ({
+    params: { category: slugifyCategory(category) },
+    props: {
+      category,
+      posts: getPostsByCategory(category)
+    }
+  }));
+}
+
+const { category, posts } = Astro.props;
+---
+
+<BaseLayout title={category}>
+  <PageHeader title={category} subtitle={`这里收录了 ${posts.length} 篇与 “${category}” 相关的文章。`} />
+  <main class="layout layout-page" id="content-inner">
+    <div class="home-grid page-grid">
+      {posts.map((post, index) => (
+        <PostCard post={post} variant={index === 0 ? "feature" : "grid"} />
+      ))}
+    </div>
+  </main>
+</BaseLayout>

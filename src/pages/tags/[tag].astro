@@ -1,0 +1,29 @@
+---
+import PostCard from "../../components/PostCard.astro";
+import PageHeader from "../../components/PageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getAllTags, getPostsByTag, slugifyTag } from "../../lib/posts";
+
+export function getStaticPaths() {
+  return getAllTags().map((tag) => ({
+    params: { tag: slugifyTag(tag) },
+    props: {
+      tag,
+      posts: getPostsByTag(tag)
+    }
+  }));
+}
+
+const { tag, posts } = Astro.props;
+---
+
+<BaseLayout title={tag}>
+  <PageHeader title={tag} subtitle={`这里收录了 ${posts.length} 篇与 “${tag}” 相关的文章。`} />
+  <main class="layout layout-page" id="content-inner">
+    <div class="home-grid page-grid">
+      {posts.map((post, index) => (
+        <PostCard post={post} variant={index === 0 ? "feature" : "grid"} />
+      ))}
+    </div>
+  </main>
+</BaseLayout>

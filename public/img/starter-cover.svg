@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Starter cover">
+  <defs>
+    <linearGradient id="cover-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8f1e7" />
+      <stop offset="45%" stop-color="#e8efe8" />
+      <stop offset="100%" stop-color="#d9e8f5" />
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#cover-bg)" />
+  <circle cx="240" cy="180" r="120" fill="#c55b3c" opacity="0.14" />
+  <circle cx="1360" cy="200" r="140" fill="#396b8a" opacity="0.12" />
+  <circle cx="1260" cy="700" r="170" fill="#8d9d65" opacity="0.12" />
+  <rect x="180" y="180" width="1240" height="540" rx="36" fill="#fff" opacity="0.8" />
+  <text x="250" y="380" fill="#1f2937" font-family="Georgia, serif" font-size="84">Notion Astro Blog</text>
+  <text x="256" y="468" fill="#4b5563" font-family="Georgia, serif" font-size="34">在 Notion 写作，用 Astro 发布。</text>
+  <text x="256" y="620" fill="#6b7280" font-family="Georgia, serif" font-size="28">适合公开复用的博客模板默认封面。</text>
+</svg>

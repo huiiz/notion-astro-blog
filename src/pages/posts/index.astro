@@ -1,0 +1,19 @@
+---
+import PostCard from "../../components/PostCard.astro";
+import PageHeader from "../../components/PageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getAllPosts } from "../../lib/posts";
+
+const posts = getAllPosts();
+---
+
+<BaseLayout title="全部文章">
+  <PageHeader title="全部文章" subtitle="把最近写下的内容按统一节奏展开，方便从标题、封面和摘要快速进入。" />
+  <main class="layout layout-page" id="content-inner">
+    <div class="home-grid page-grid">
+      {posts.map((post, index) => (
+        <PostCard post={post} variant={index === 0 ? "feature" : "grid"} />
+      ))}
+    </div>
+  </main>
+</BaseLayout>

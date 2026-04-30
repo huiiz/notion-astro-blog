@@ -1,26 +1,40 @@
 ---
 import "../styles/global.css";
+import { notionNavigation, type NavigationItem } from "../lib/notion-config";
+import { withBasePath } from "../lib/paths";
 import { siteConfig } from "../lib/site";
+import { themeConfig, type ThemeConfig } from "../lib/theme";
 
 interface Props {
   title?: string;
   description?: string;
+  theme?: ThemeConfig;
 }
 
-const { title, description } = Astro.props;
+const { title, description, theme } = Astro.props;
+const activeTheme = theme || themeConfig;
 const pageTitle = title ? `${title} | ${siteConfig.title}` : `${siteConfig.title} - ${siteConfig.subtitle}`;
 const pageDescription = description || siteConfig.description;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? "https://example.com");
 const currentYear = new Date().getFullYear();
-const nav = [
-  { href: "/", label: "首页" },
-  { href: "/archive/", label: "归档" },
-  { href: "/tags/", label: "标签" },
-  { href: "/categories/", label: "分类" },
-  { href: "/link/", label: "友链" },
-  { href: "/about/", label: "关于" },
-  { href: siteConfig.profile, label: "个人主页", external: true }
-];
+const nav = notionNavigation.length ? notionNavigation : buildDefaultNavigation();
+
+function buildDefaultNavigation(): NavigationItem[] {
+  const items: NavigationItem[] = [
+    { href: "/", label: "\u9996\u9875" },
+    { href: "/archive/", label: "\u5f52\u6863" },
+    { href: "/tags/", label: "\u6807\u7b7e" },
+    { href: "/categories/", label: "\u5206\u7c7b" },
+    { href: "/link/", label: "\u53cb\u94fe" },
+    { href: "/about/", label: "\u5173\u4e8e" }
+  ];
+
+  if (siteConfig.profile) {
+    items.push({ href: siteConfig.profile, label: "\u4e2a\u4eba\u4e3b\u9875", external: true });
+  }
+
+  return items;
+}
 ---
 
 <!doctype html>
@@ -38,13 +52,39 @@ const nav = [
     <meta property="og:url" content={canonical.toString()} />
     <meta property="og:image" content={new URL(siteConfig.avatar, Astro.site ?? "https://example.com").toString()} />
     <meta name="twitter:card" content="summary" />
-    <meta name="theme-color" content="#4e8cff" />
+    <meta name="theme-color" content={activeTheme.themeColor} />
     <link rel="canonical" href={canonical.toString()} />
     <link rel="shortcut icon" href={siteConfig.logo} />
     <link rel="alternate" type="application/rss+xml" title={siteConfig.title} href={`${import.meta.env.BASE_URL}rss.xml`} />
+    <script is:inline>
+      window.MathJax = {
+        tex: {
+          inlineMath: [["$", "$"], ["\\(", "\\)"]],
+          displayMath: [["$$", "$$"], ["\\[", "\\]"]],
+          processEscapes: true
+        },
+        options: {
+          skipHtmlTags: ["script", "noscript", "style", "textarea", "pre", "code"]
+        }
+      };
+    </script>
+    <script
+      is:inline
+      async
+      id="mathjax-script"
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
   </head>
   <body>
-    <div class="page" id="body-wrap">
+    <div
+      class="page"
+      id="body-wrap"
+      data-theme-preset={activeTheme.preset}
+      data-home-template={activeTheme.homeTemplate}
+      data-card-style={activeTheme.cardStyle}
+      data-sidebar-style={activeTheme.sidebarStyle}
+      style={activeTheme.inlineStyle}
+    >
       <nav id="nav">
         <div class="nav-inner">
           <a class="nav-site-title" href={import.meta.env.BASE_URL}>
@@ -61,7 +101,7 @@ const nav = [
                 <div class="menus-item">
                   <a
                     class="site-page"
-                    href={item.external ? item.href : `${import.meta.env.BASE_URL}${item.href.replace(/^\//, "")}`}
+                    href={item.external ? item.href : withBasePath(item.href)}
                     target={item.external ? "_blank" : undefined}
                     rel={item.external ? "noreferrer" : undefined}
                   >
@@ -82,11 +122,11 @@ const nav = [
             <div class="footer-copyright">
               <span class="copyright">&copy; {currentYear} By {siteConfig.author}</span>
             </div>
-            {siteConfig.recordText && siteConfig.recordLink ? (
+            {siteConfig.recordText && siteConfig.recordLink && (
               <div class="footer-custom-text">
                 <span><a href={siteConfig.recordLink} target="_blank" rel="noreferrer">{siteConfig.recordText}</a></span>
               </div>
-            ) : null}
+            )}
           </div>
         </div>
       </footer>

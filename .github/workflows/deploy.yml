@@ -6,8 +6,6 @@ on:
   repository_dispatch:
     types: [notion-content-updated]
   workflow_dispatch:
-  schedule:
-    - cron: "17 */6 * * *"
 
 permissions:
   contents: read
@@ -23,7 +21,7 @@ jobs:
       - name: Checkout source repository
         uses: actions/checkout@v6
 
-      - name: Derive Astro site settings
+      - name: Derive publish target
         shell: bash
         run: |
           if [ -n "${{ vars.SITE_URL }}" ]; then
@@ -53,7 +51,7 @@ jobs:
           fi
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: npm
@@ -62,7 +60,30 @@ jobs:
         run: npm ci
 
       - name: Build site
-        run: npm run build
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          attempts=0
+          max_attempts=3
+
+          until [ "$attempts" -ge "$max_attempts" ]
+          do
+            attempts=$((attempts + 1))
+            echo "Build attempt ${attempts}/${max_attempts}"
+
+            if npm run build; then
+              exit 0
+            fi
+
+            if [ "$attempts" -lt "$max_attempts" ]; then
+              echo "Build failed, waiting before retry..."
+              sleep 20
+            fi
+          done
+
+          echo "Build failed after ${max_attempts} attempts."
+          exit 1
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
@@ -82,12 +103,49 @@ jobs:
           SITE_URL: ${{ env.SITE_URL }}
           BASE_PATH: ${{ env.BASE_PATH }}
 
-      - name: Publish static site
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Skip publish when token is missing
+        if: ${{ !secrets.PUBLISH_TO_PAGES_TOKEN }}
+        run: echo "PUBLISH_TO_PAGES_TOKEN is not configured. Build completed, publish skipped."
+
+      - name: Checkout publish repository
+        if: ${{ secrets.PUBLISH_TO_PAGES_TOKEN }}
+        uses: actions/checkout@v6
         with:
-          personal_token: ${{ secrets.PUBLISH_TO_PAGES_TOKEN }}
-          external_repository: ${{ env.PAGES_TARGET_REPOSITORY }}
-          publish_branch: ${{ env.PAGES_TARGET_BRANCH }}
-          publish_dir: ./dist
-          cname: ${{ env.SITE_CNAME }}
-          force_orphan: true
+          repository: ${{ env.PAGES_TARGET_REPOSITORY }}
+          ref: ${{ env.PAGES_TARGET_BRANCH }}
+          token: ${{ secrets.PUBLISH_TO_PAGES_TOKEN }}
+          path: .publish-repo
+
+      - name: Publish static site
+        if: ${{ secrets.PUBLISH_TO_PAGES_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          shopt -s dotglob nullglob
+
+          if [ -n "${SITE_CNAME}" ]; then
+            printf '%s\n' "${SITE_CNAME}" > dist/CNAME
+          fi
+
+          find .publish-repo -mindepth 1 -maxdepth 1 \
+            ! -name '.git' \
+            ! -name '.github' \
+            -exec rm -rf {} +
+
+          cp -R dist/. .publish-repo/
+
+          cd .publish-repo
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+
+          if git diff --cached --quiet --no-ext-diff; then
+            echo "No staged changes to publish."
+            exit 0
+          fi
+
+          git commit -m "Deploy from ${GITHUB_REPOSITORY}@${GITHUB_SHA}"
+          git push origin "${PAGES_TARGET_BRANCH}"

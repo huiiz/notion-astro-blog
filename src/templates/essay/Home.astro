@@ -1,0 +1,194 @@
+---
+import Pagination from "../../components/Pagination.astro";
+import { HOME_PAGE_SIZE, paginateItems, type PaginationState } from "../../lib/pagination";
+import type { BlogPost } from "../../lib/posts";
+import {
+  formatDate,
+  getAllCategories,
+  getAllPosts,
+  getAllTags,
+  getCategoryCounts,
+  getLatestUpdatedPost,
+  getTagCounts,
+  slugifyCategory,
+  slugifyTag
+} from "../../lib/posts";
+import { siteConfig } from "../../lib/site";
+import type { ThemeConfig } from "../../lib/theme";
+import "./styles.css";
+
+interface Props {
+  theme: ThemeConfig;
+  posts?: BlogPost[];
+  pagination?: PaginationState<BlogPost>;
+  previewPreset?: string;
+}
+
+const { theme, posts, pagination, previewPreset } = Astro.props;
+const fallbackPagination = pagination ?? paginateItems(getAllPosts(), 1, HOME_PAGE_SIZE);
+const visiblePosts = posts?.length ? posts : fallbackPagination.items;
+const activePagination = pagination ?? fallbackPagination;
+const selectedPosts = visiblePosts.slice(0, 5);
+const archivePosts = visiblePosts.slice(5);
+const leadingTopics = getTagCounts().slice(0, 8);
+const categoryCounts = getCategoryCounts().slice(0, 6);
+const latestUpdated = getLatestUpdatedPost();
+const stats = [
+  { label: "文章", value: String(getAllPosts().length) },
+  { label: "标签", value: String(getAllTags().length) },
+  { label: "分类", value: String(getAllCategories().length) }
+];
+const postHref = (slug: string) =>
+  previewPreset
+    ? `${import.meta.env.BASE_URL}templates/${previewPreset}/posts/${slug}/`
+    : `${import.meta.env.BASE_URL}posts/${slug}/`;
+---
+
+<main class:list={["layout", "template-home", `template-home-${theme.preset}`, "essay-layout"]} id="content-inner">
+  <section class="essay-profile">
+    <div class="essay-identity">
+      <img class="essay-avatar" src={siteConfig.avatar} alt={siteConfig.author} />
+      <div class="essay-identity-copy">
+        <span class="essay-kicker">Author Notes</span>
+        <h1>{siteConfig.author}</h1>
+        <p>{siteConfig.description}</p>
+        <strong>{siteConfig.motto}</strong>
+
+        <div class="essay-links">
+          <a href={`${import.meta.env.BASE_URL}archive/`}>全部文章</a>
+          <a href={`${import.meta.env.BASE_URL}about/`}>关于</a>
+          <a href={siteConfig.profile} target="_blank" rel="noreferrer">主页</a>
+        </div>
+      </div>
+    </div>
+
+    <aside class="essay-overview">
+      <div class="essay-overview-block">
+        <span>站点</span>
+        <strong>{siteConfig.title}</strong>
+        <small>以长文、笔记和专题写作为主。</small>
+      </div>
+
+      <div class="essay-stat-list">
+        {stats.map((item) => (
+          <div class="essay-stat">
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+          </div>
+        ))}
+      </div>
+
+      <div class="essay-overview-block">
+        <span>最近更新</span>
+        <strong>{latestUpdated ? formatDate(latestUpdated.updatedAt || latestUpdated.publishedAt) : "--"}</strong>
+        <small>按时间持续整理，新的文章和笔记都会顺着首页往下排。</small>
+      </div>
+    </aside>
+  </section>
+
+  <section class="essay-section">
+    <div class="essay-section-head">
+      <div>
+        <span class="essay-section-label">Selected Writing</span>
+        <h2>近期文章</h2>
+      </div>
+      <p>优先显示最近更新，按时间顺序继续往下读。</p>
+    </div>
+
+    <div class="essay-paper-list">
+      {selectedPosts.map((post) => (
+        <article class="essay-paper">
+          <div class="essay-paper-date">
+            <span>{post.publishedAt.slice(0, 4)}</span>
+            <strong>{formatDate(post.publishedAt)}</strong>
+          </div>
+
+          <div class="essay-paper-body">
+            <div class="essay-paper-meta">
+              <span>{post.readingMinutes} 分钟</span>
+              {post.categories[0] && (
+                <a href={`${import.meta.env.BASE_URL}categories/${slugifyCategory(post.categories[0])}/`}>
+                  {post.categories[0]}
+                </a>
+              )}
+            </div>
+
+            <a class="essay-paper-title" href={postHref(post.slug)}>
+              {post.title}
+            </a>
+
+            <p>{post.summary}</p>
+
+            {post.tags.length > 0 && (
+              <div class="essay-paper-tags">
+                {post.tags.slice(0, 3).map((tag) => (
+                  <a href={`${import.meta.env.BASE_URL}tags/${slugifyTag(tag)}/`}>#{tag}</a>
+                ))}
+              </div>
+            )}
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="essay-columns">
+    <section class="essay-column">
+      <div class="essay-column-head">
+        <span class="essay-section-label">Research Interests</span>
+        <h3>常写主题</h3>
+      </div>
+      <div class="essay-topic-list">
+        {leadingTopics.map((item) => (
+          <a href={`${import.meta.env.BASE_URL}tags/${slugifyTag(item.name)}/`}>
+            <span>{item.name}</span>
+            <small>{item.count}</small>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="essay-column">
+      <div class="essay-column-head">
+        <span class="essay-section-label">Categories</span>
+        <h3>分类浏览</h3>
+      </div>
+      <div class="essay-category-list">
+        {categoryCounts.map((item) => (
+          <a href={`${import.meta.env.BASE_URL}categories/${slugifyCategory(item.name)}/`}>
+            <strong>{item.name}</strong>
+            <span>{item.count} 篇</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  </section>
+
+  {archivePosts.length > 0 && (
+    <section class="essay-section essay-section-archive">
+      <div class="essay-section-head">
+        <div>
+          <span class="essay-section-label">More Articles</span>
+          <h2>更早文章</h2>
+        </div>
+        <p>向下翻即可继续查看更早的写作和笔记。</p>
+      </div>
+
+      <div class="essay-archive-list">
+        {archivePosts.map((post) => (
+          <article class="essay-archive-item">
+            <span>{formatDate(post.publishedAt)}</span>
+            <div>
+              <a href={postHref(post.slug)}>{post.title}</a>
+              <p>{post.summary}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <div class="essay-pagination-wrap">
+    <Pagination currentPage={activePagination.currentPage} totalPages={activePagination.totalPages} kind="home" />
+  </div>
+</main>

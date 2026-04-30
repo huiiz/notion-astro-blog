@@ -23,11 +23,11 @@ export function withBasePath(value: string): string {
 export function prefixHtmlAssetPaths(html: string): string {
   return html
     .replace(
-      /((?:src|href|poster)=["'])(\/(?:img|data|survey-assets)\/[^"']*|\/mllm-survey-cn\.html(?:[^"']*)?)(["'])/gi,
+      /((?:src|href|poster)=["'])(\/(?:img|data|survey-assets|notion)\/[^"']*|\/mllm-survey-cn\.html(?:[^"']*)?)(["'])/gi,
       (_match, prefix, assetPath, suffix) => `${prefix}${withBasePath(assetPath)}${suffix}`
     )
     .replace(
-      /(url\(["']?)(\/(?:img|data|survey-assets)\/[^)"']*|\/mllm-survey-cn\.html(?:[^)"']*)?)(["']?\))/gi,
+      /(url\(["']?)(\/(?:img|data|survey-assets|notion)\/[^)"']*|\/mllm-survey-cn\.html(?:[^)"']*)?)(["']?\))/gi,
       (_match, prefix, assetPath, suffix) => `${prefix}${withBasePath(assetPath)}${suffix}`
     );
 }

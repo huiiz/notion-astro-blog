@@ -1,0 +1,168 @@
+---
+import Pagination from "../../components/Pagination.astro";
+import { HOME_PAGE_SIZE, paginateItems, type PaginationState } from "../../lib/pagination";
+import type { BlogPost } from "../../lib/posts";
+import {
+  formatDate,
+  getAllPosts,
+  getCategoryCounts,
+  getDefaultCover,
+  getLatestUpdatedPost,
+  getTagCounts,
+  slugifyCategory,
+  slugifyTag
+} from "../../lib/posts";
+import { siteConfig } from "../../lib/site";
+import type { ThemeConfig } from "../../lib/theme";
+import "./styles.css";
+
+interface Props {
+  theme: ThemeConfig;
+  posts?: BlogPost[];
+  pagination?: PaginationState<BlogPost>;
+  previewPreset?: string;
+}
+
+const { theme, posts, pagination, previewPreset } = Astro.props;
+const fallbackPagination = pagination ?? paginateItems(getAllPosts(), 1, HOME_PAGE_SIZE);
+const visiblePosts = posts?.length ? posts : fallbackPagination.items;
+const activePagination = pagination ?? fallbackPagination;
+const feature = visiblePosts[0];
+const pinnedPosts = visiblePosts.slice(1, 3);
+const riverPosts = visiblePosts.slice(3);
+const leadingTags = getTagCounts().slice(0, 8);
+const leadingCategories = getCategoryCounts().slice(0, 5);
+const latestUpdated = getLatestUpdatedPost();
+const postHref = (slug: string) =>
+  previewPreset
+    ? `${import.meta.env.BASE_URL}templates/${previewPreset}/posts/${slug}/`
+    : `${import.meta.env.BASE_URL}posts/${slug}/`;
+---
+
+<main class:list={["layout", "template-home", `template-home-${theme.preset}`, "clover-layout"]} id="content-inner">
+  <section class="clover-stage">
+    <div class="clover-welcome">
+      <img class="clover-avatar" src={siteConfig.avatar} alt={siteConfig.author} />
+
+      <div class="clover-copy">
+        <span class="section-kicker">个人主页</span>
+        <h1>{siteConfig.title}</h1>
+        <p>{siteConfig.description}</p>
+        <strong>{siteConfig.motto}</strong>
+
+        <div class="clover-actions">
+          <a href={`${import.meta.env.BASE_URL}archive/`}>全部文章</a>
+          <a href={`${import.meta.env.BASE_URL}about/`}>关于</a>
+        </div>
+      </div>
+    </div>
+
+    <aside class="clover-side-notes">
+      <article class="clover-note">
+        <span>最近更新</span>
+        <p>{latestUpdated ? `${formatDate(latestUpdated.updatedAt || latestUpdated.publishedAt)} 更新` : "持续整理中"}</p>
+      </article>
+
+      <div class="clover-pinned-list">
+        {pinnedPosts.map((post) => (
+          <a class="clover-pinned-link" href={postHref(post.slug)}>
+            <span>{formatDate(post.publishedAt)}</span>
+            <strong>{post.title}</strong>
+          </a>
+        ))}
+      </div>
+    </aside>
+  </section>
+
+  <section class="clover-scene">
+    {feature && (
+      <article class="clover-feature">
+        <a class="clover-feature-cover" href={postHref(feature.slug)}>
+          <img src={getDefaultCover(feature)} alt={feature.title} loading="lazy" />
+        </a>
+
+        <div class="clover-feature-body">
+          <span class="clover-feature-label">推荐阅读</span>
+          <a class="clover-feature-title" href={postHref(feature.slug)}>
+            {feature.title}
+          </a>
+          <p>{feature.summary}</p>
+          <div class="clover-feature-meta">
+            <span>{formatDate(feature.publishedAt)}</span>
+            <span>{feature.readingMinutes} 分钟</span>
+          </div>
+        </div>
+      </article>
+    )}
+
+    <aside class="clover-paths">
+      <section class="clover-path-card">
+        <div class="clover-path-head">
+          <span class="section-kicker">主题</span>
+          <h2>常写主题</h2>
+        </div>
+        <div class="clover-tag-cloud">
+          {leadingTags.map((item) => (
+            <a href={`${import.meta.env.BASE_URL}tags/${slugifyTag(item.name)}/`}>
+              {item.name}
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section class="clover-path-card">
+        <div class="clover-path-head">
+          <span class="section-kicker">分类</span>
+          <h2>分类浏览</h2>
+        </div>
+        <div class="clover-category-list">
+          {leadingCategories.map((item) => (
+            <a href={`${import.meta.env.BASE_URL}categories/${slugifyCategory(item.name)}/`}>
+              <span>{item.name}</span>
+              <small>{item.count}</small>
+            </a>
+          ))}
+        </div>
+      </section>
+    </aside>
+  </section>
+
+  <section class="clover-river">
+    <div class="clover-river-head">
+      <div>
+        <span class="section-kicker">文章</span>
+        <h2>最新文章</h2>
+      </div>
+      <p>按时间顺序整理，可以从这里一路往下读。</p>
+    </div>
+
+    <div class="clover-river-list">
+      {riverPosts.map((post) => (
+        <article class="clover-entry">
+          <a class="clover-entry-cover" href={postHref(post.slug)}>
+            <img src={getDefaultCover(post)} alt={post.title} loading="lazy" />
+          </a>
+
+          <div class="clover-entry-body">
+            <div class="clover-entry-meta">
+              <span>{formatDate(post.publishedAt)}</span>
+              <span>{post.readingMinutes} 分钟</span>
+              {post.categories[0] && <span>{post.categories[0]}</span>}
+            </div>
+            <a class="clover-entry-title" href={postHref(post.slug)}>
+              {post.title}
+            </a>
+            <p>{post.summary}</p>
+            <div class="clover-entry-tags">
+              {post.tags.slice(0, 3).map((tag) => (
+                <a href={`${import.meta.env.BASE_URL}tags/${slugifyTag(tag)}/`}>#{tag}</a>
+              ))}
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <Pagination currentPage={activePagination.currentPage} totalPages={activePagination.totalPages} kind="home" />
+  </section>
+</main>

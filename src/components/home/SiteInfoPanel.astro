@@ -1,0 +1,25 @@
+---
+import { formatDate, getLatestUpdatedPost } from "../../lib/posts";
+import { siteConfig } from "../../lib/site";
+
+interface Props {
+  title?: string;
+}
+
+const { title = "站点信息" } = Astro.props;
+const latestUpdated = getLatestUpdatedPost();
+const runtimeDays = Math.max(
+  1,
+  Math.floor((Date.now() - new Date(siteConfig.runtimeSince).getTime()) / 86400000)
+);
+---
+
+<section class="sidebar-card sidebar-section">
+  <div class="sidebar-section-head">
+    <h3>{title}</h3>
+  </div>
+  <div class="sidebar-webinfo">
+    <div><span>运行时间</span><strong>{runtimeDays} 天</strong></div>
+    <div><span>最后更新</span><strong>{latestUpdated ? formatDate(latestUpdated.updatedAt || latestUpdated.publishedAt) : "--"}</strong></div>
+  </div>
+</section>

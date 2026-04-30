@@ -3,16 +3,19 @@ import { formatDate, getDefaultCover, slugifyCategory, slugifyTag } from "../lib
 
 interface Props {
   post: any;
-  variant?: "feature" | "grid";
+  variant?: "feature" | "grid" | "compact";
+  postBasePath?: string;
 }
 
-const { post, variant = "grid" } = Astro.props;
-const previewTags = post.tags.slice(0, variant === "feature" ? 4 : 2);
+const { post, variant = "grid", postBasePath = "posts" } = Astro.props;
+const previewTags = post.tags.slice(0, variant === "feature" ? 4 : variant === "compact" ? 1 : 2);
 const previewCategories = post.categories.slice(0, variant === "feature" ? 2 : 1);
+const normalizedBasePath = postBasePath.replace(/^\/+|\/+$/g, "");
+const postHref = `${import.meta.env.BASE_URL}${normalizedBasePath}/${post.slug}/`;
 ---
 
 <article class:list={["post-card", `post-card-${variant}`]}>
-  <a class="post-card-cover" href={`${import.meta.env.BASE_URL}posts/${post.slug}/`} title={post.title}>
+  <a class="post-card-cover" href={postHref} title={post.title}>
     <img class="post-card-image" src={getDefaultCover(post)} alt={post.title} loading="lazy" />
   </a>
 
@@ -22,7 +25,7 @@ const previewCategories = post.categories.slice(0, variant === "feature" ? 2 : 1
       <span>阅读 {post.readingMinutes} 分钟</span>
     </div>
 
-    <a class="post-card-title" href={`${import.meta.env.BASE_URL}posts/${post.slug}/`} title={post.title}>{post.title}</a>
+    <a class="post-card-title" href={postHref} title={post.title}>{post.title}</a>
 
     {previewCategories.length > 0 && (
       <div class="post-card-categories">
@@ -42,7 +45,7 @@ const previewCategories = post.categories.slice(0, variant === "feature" ? 2 : 1
           <a href={`${import.meta.env.BASE_URL}tags/${slugifyTag(tag)}/`}>#{tag}</a>
         ))}
       </div>
-      <a class="post-card-link" href={`${import.meta.env.BASE_URL}posts/${post.slug}/`}>继续阅读</a>
+      <a class="post-card-link" href={postHref}>继续阅读</a>
     </div>
   </div>
 </article>

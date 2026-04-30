@@ -1,0 +1,62 @@
+---
+import Pagination from "../../components/Pagination.astro";
+import PostCard from "../../components/PostCard.astro";
+import PageHeader from "../../components/PageHeader.astro";
+import Sidebar from "../../components/Sidebar.astro";
+import { HOME_PAGE_SIZE, paginateItems, type PaginationState } from "../../lib/pagination";
+import type { BlogPost } from "../../lib/posts";
+import { getAllPosts } from "../../lib/posts";
+import type { ThemeConfig } from "../../lib/theme";
+
+interface Props {
+  theme: ThemeConfig;
+  posts?: BlogPost[];
+  pagination?: PaginationState<BlogPost>;
+  previewPreset?: string;
+}
+
+const { posts, pagination, previewPreset } = Astro.props;
+const fallbackPagination = pagination ?? paginateItems(getAllPosts(), 1, HOME_PAGE_SIZE);
+const visiblePosts = posts?.length ? posts : fallbackPagination.items;
+const activePagination = pagination ?? fallbackPagination;
+const featuredPost = visiblePosts[0];
+const gridPosts = visiblePosts.slice(1);
+const postBasePath = previewPreset ? `templates/${previewPreset}/posts` : "posts";
+---
+
+<PageHeader home={true} />
+
+<main class="layout layout-home" id="content-inner">
+  <section class="home-content">
+    {featuredPost && (
+      <section class="home-featured">
+        <div class="home-section-title">
+          <div>
+            <span class="section-kicker">最新发布</span>
+            <h2>最近写下的内容</h2>
+          </div>
+        </div>
+        <PostCard post={featuredPost} variant="feature" postBasePath={postBasePath} />
+      </section>
+    )}
+
+    <section class="home-feed">
+      <div class="home-section-title">
+        <div>
+          <span class="section-kicker">文章列表</span>
+          <h2>全部文章</h2>
+        </div>
+      </div>
+
+      <div class="home-grid">
+        {gridPosts.map((post) => (
+          <PostCard post={post} postBasePath={postBasePath} />
+        ))}
+      </div>
+
+      <Pagination currentPage={activePagination.currentPage} totalPages={activePagination.totalPages} kind="home" />
+    </section>
+  </section>
+
+  <Sidebar />
+</main>

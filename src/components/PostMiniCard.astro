@@ -1,0 +1,31 @@
+---
+import { formatDate, slugifyTag } from "../lib/posts";
+
+interface Props {
+  post: any;
+  postBasePath?: string;
+}
+
+const { post, postBasePath = "posts" } = Astro.props;
+const previewTag = post.tags[0];
+const normalizedBasePath = postBasePath.replace(/^\/+|\/+$/g, "");
+const postHref = `${import.meta.env.BASE_URL}${normalizedBasePath}/${post.slug}/`;
+---
+
+<article class="post-mini-card">
+  <div class="post-mini-card-meta">
+    <span>{formatDate(post.publishedAt)}</span>
+    <span>{post.readingMinutes} 分钟</span>
+  </div>
+
+  <a class="post-mini-card-title" href={postHref} title={post.title}>
+    {post.title}
+  </a>
+
+  <p class="post-mini-card-summary">{post.summary}</p>
+
+  <div class="post-mini-card-footer">
+    {previewTag ? <a href={`${import.meta.env.BASE_URL}tags/${slugifyTag(previewTag)}/`}>#{previewTag}</a> : <span></span>}
+    <a href={postHref}>进入文章</a>
+  </div>
+</article>

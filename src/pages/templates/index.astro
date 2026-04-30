@@ -1,0 +1,37 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { createThemeConfig } from "../../lib/theme";
+import { getTemplateDefinitions } from "../../templates";
+
+const templates = getTemplateDefinitions();
+---
+
+<BaseLayout title="主题预览" description="预览不同的中文博客主题">
+  <main class="layout layout-page" id="content-inner">
+    <section class="template-preview-intro tag-cloud-card">
+      <span class="section-kicker">主题预览</span>
+      <h1>五套中文博客主题</h1>
+      <p>同一套文章内容，切换成不同的首页与文章阅读风格。</p>
+    </section>
+
+    <section class="template-preview-grid">
+      {templates.map((template) => {
+        const config = createThemeConfig({ preset: template.id });
+        return (
+          <a class="template-preview-card" href={`${import.meta.env.BASE_URL}templates/${template.id}/`}>
+            <div class="template-preview-swatch" style={config.inlineStyle}>
+              <span class="template-preview-dot"></span>
+              <span class="template-preview-line short"></span>
+              <span class="template-preview-line"></span>
+              <span class="template-preview-line faint"></span>
+            </div>
+            <div class="template-preview-body">
+              <strong>{template.title}</strong>
+              <p>{template.aesthetic}</p>
+            </div>
+          </a>
+        );
+      })}
+    </section>
+  </main>
+</BaseLayout>

@@ -1,47 +1,15 @@
 ---
-import PostCard from "../components/PostCard.astro";
-import PageHeader from "../components/PageHeader.astro";
-import Sidebar from "../components/Sidebar.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { HOME_PAGE_SIZE, paginateItems } from "../lib/pagination";
 import { getAllPosts } from "../lib/posts";
+import { themeConfig } from "../lib/theme";
+import { getTemplateDefinition } from "../templates";
 
-const posts = getAllPosts();
-const featuredPost = posts[0];
-const gridPosts = posts.slice(1);
+const template = getTemplateDefinition(themeConfig.preset);
+const HomeComponent = template.component;
+const pagination = paginateItems(getAllPosts(), 1, HOME_PAGE_SIZE);
 ---
 
 <BaseLayout>
-  <PageHeader home={true} />
-  <main class="layout layout-home" id="content-inner">
-    <section class="home-content">
-      {featuredPost && (
-        <section class="home-featured">
-          <div class="home-section-title">
-            <div>
-              <span class="section-kicker">最新发布</span>
-              <h2>最近写下的内容</h2>
-            </div>
-          </div>
-          <PostCard post={featuredPost} variant="feature" />
-        </section>
-      )}
-
-      <section class="home-feed">
-        <div class="home-section-title">
-          <div>
-            <span class="section-kicker">文章列表</span>
-            <h2>全部文章</h2>
-          </div>
-        </div>
-
-        <div class="home-grid">
-          {gridPosts.map((post) => (
-            <PostCard post={post} />
-          ))}
-        </div>
-      </section>
-    </section>
-
-    <Sidebar />
-  </main>
+  <HomeComponent theme={themeConfig} posts={pagination.items} pagination={pagination} />
 </BaseLayout>

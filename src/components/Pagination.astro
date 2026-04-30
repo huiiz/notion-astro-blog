@@ -1,0 +1,151 @@
+---
+import { buildPageLink, type PaginationKind } from "../lib/pagination";
+
+interface Props {
+  currentPage: number;
+  totalPages: number;
+  kind?: PaginationKind;
+}
+
+const { currentPage, totalPages, kind = "posts" } = Astro.props;
+
+function getPageNumbers() {
+  const pages = new Set<number>([1, totalPages, currentPage, currentPage - 1, currentPage + 1]);
+  return [...pages].filter((page) => page >= 1 && page <= totalPages).sort((a, b) => a - b);
+}
+
+const pages = getPageNumbers();
+---
+
+{totalPages > 1 && (
+  <nav class="pagination" aria-label={kind === "home" ? "首页分页" : "文章列表分页"}>
+    <div class="pagination-summary">
+      <strong>{currentPage}</strong>
+      <span>/ {totalPages}</span>
+    </div>
+
+    {currentPage > 1 ? (
+      <a class="pagination-arrow" href={buildPageLink(currentPage - 1, kind)}>
+        上一页
+      </a>
+    ) : (
+      <span class="pagination-arrow is-disabled">上一页</span>
+    )}
+
+    <div class="pagination-pages">
+      {pages.map((page, index) => (
+        <>
+          {index > 0 && pages[index] - pages[index - 1] > 1 && <span class="pagination-gap">…</span>}
+          <a class:list={["pagination-page", page === currentPage && "is-active"]} href={buildPageLink(page, kind)}>
+            {page}
+          </a>
+        </>
+      ))}
+    </div>
+
+    {currentPage < totalPages ? (
+      <a class="pagination-arrow" href={buildPageLink(currentPage + 1, kind)}>
+        下一页
+      </a>
+    ) : (
+      <span class="pagination-arrow is-disabled">下一页</span>
+    )}
+  </nav>
+)}
+
+<style>
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.9rem;
+    margin-top: 2.4rem;
+    flex-wrap: wrap;
+  }
+
+  .pagination-summary {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.22rem;
+    padding: 0 0.15rem;
+    color: var(--theme-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .pagination-summary strong {
+    color: var(--theme-text);
+    font-size: 1.15rem;
+  }
+
+  .pagination-pages {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+  }
+
+  .pagination-arrow,
+  .pagination-page {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.8rem;
+    min-height: 2.8rem;
+    padding: 0 0.95rem;
+    border: 1px solid var(--theme-line);
+    border-radius: 999px;
+    background: var(--theme-panel);
+    color: var(--theme-text);
+    box-shadow: var(--theme-shadow);
+    transition:
+      transform 180ms ease,
+      border-color 180ms ease,
+      background 180ms ease,
+      color 180ms ease;
+  }
+
+  .pagination-arrow:hover,
+  .pagination-page:hover {
+    transform: translateY(-2px);
+    border-color: var(--theme-soft-fill-strong);
+  }
+
+  .pagination-page.is-active {
+    background: var(--theme-color);
+    color: #fff;
+    border-color: transparent;
+  }
+
+  .pagination-arrow.is-disabled {
+    opacity: 0.45;
+    box-shadow: none;
+  }
+
+  .pagination-gap {
+    color: var(--theme-muted);
+    padding: 0 0.1rem;
+  }
+
+  @media (max-width: 760px) {
+    .pagination {
+      justify-content: center;
+      gap: 0.7rem;
+    }
+
+    .pagination-summary {
+      width: 100%;
+      justify-content: center;
+      order: -1;
+    }
+
+    .pagination-pages {
+      justify-content: center;
+      width: 100%;
+    }
+
+    .pagination-arrow {
+      min-width: calc(50% - 0.5rem);
+      padding: 0 0.75rem;
+    }
+  }
+</style>

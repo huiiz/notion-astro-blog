@@ -1,0 +1,128 @@
+---
+import Pagination from "../../components/Pagination.astro";
+import AuthorPanel from "../../components/home/AuthorPanel.astro";
+import CategoryPanel from "../../components/home/CategoryPanel.astro";
+import SiteInfoPanel from "../../components/home/SiteInfoPanel.astro";
+import TagPanel from "../../components/home/TagPanel.astro";
+import { HOME_PAGE_SIZE, paginateItems, type PaginationState } from "../../lib/pagination";
+import type { BlogPost } from "../../lib/posts";
+import { formatDate, getAllPosts, slugifyCategory } from "../../lib/posts";
+import { siteConfig } from "../../lib/site";
+import type { ThemeConfig } from "../../lib/theme";
+import "./styles.css";
+
+interface Props {
+  theme: ThemeConfig;
+  posts?: BlogPost[];
+  pagination?: PaginationState<BlogPost>;
+  previewPreset?: string;
+}
+
+const { theme, posts, pagination, previewPreset } = Astro.props;
+const fallbackPagination = pagination ?? paginateItems(getAllPosts(), 1, HOME_PAGE_SIZE);
+const visiblePosts = posts?.length ? posts : fallbackPagination.items;
+const activePagination = pagination ?? fallbackPagination;
+const lead = visiblePosts[0];
+const headlinePosts = visiblePosts.slice(1, 4);
+const streamPosts = visiblePosts.slice(4);
+const leftColumnPosts = streamPosts.filter((_post, index) => index % 2 === 0);
+const rightColumnPosts = streamPosts.filter((_post, index) => index % 2 === 1);
+const postHref = (slug: string) =>
+  previewPreset
+    ? `${import.meta.env.BASE_URL}templates/${previewPreset}/posts/${slug}/`
+    : `${import.meta.env.BASE_URL}posts/${slug}/`;
+---
+
+<main class:list={["layout", "template-home", `template-home-${theme.preset}`, "ledger-layout"]} id="content-inner">
+  <section class="ledger-masthead">
+    <div class="ledger-masthead-top">
+      <span>{siteConfig.author}</span>
+      <span>长期写作与技术记录</span>
+      <span>{activePagination.totalItems} 篇文章</span>
+    </div>
+    <h1>{siteConfig.title}</h1>
+    <p>{siteConfig.description}</p>
+  </section>
+
+  <section class="ledger-shell">
+    <aside class="ledger-side ledger-side-left">
+      <AuthorPanel title="作者小记" variant="minimal" />
+      <SiteInfoPanel title="最近更新" />
+    </aside>
+
+    <section class="ledger-main">
+      {lead && (
+        <article class="ledger-lead">
+          <div class="ledger-meta">
+            <span>{formatDate(lead.publishedAt)}</span>
+            <span>{lead.readingMinutes} 分钟</span>
+            {lead.categories[0] && (
+              <a href={`${import.meta.env.BASE_URL}categories/${slugifyCategory(lead.categories[0])}/`}>
+                {lead.categories[0]}
+              </a>
+            )}
+          </div>
+          <a class="ledger-lead-title" href={postHref(lead.slug)}>
+            {lead.title}
+          </a>
+          <p>{lead.summary}</p>
+          <a class="ledger-readmore" href={postHref(lead.slug)}>阅读全文</a>
+        </article>
+      )}
+
+      <section class="ledger-headlines">
+        {headlinePosts.map((post) => (
+          <article class="ledger-headline-card">
+            <div class="ledger-meta">
+              <span>{formatDate(post.publishedAt)}</span>
+              <span>{post.readingMinutes} 分钟</span>
+            </div>
+            <a class="ledger-headline-title" href={postHref(post.slug)}>
+              {post.title}
+            </a>
+            <p>{post.summary}</p>
+          </article>
+        ))}
+      </section>
+
+      <div class="ledger-columns">
+        <div class="ledger-column">
+          {leftColumnPosts.map((post, index) => (
+            <article class:list={["ledger-story", index === 0 && "is-strong"]}>
+              <div class="ledger-meta">
+                <span>{formatDate(post.publishedAt)}</span>
+                <span>{post.readingMinutes} 分钟</span>
+              </div>
+              <a class="ledger-story-title" href={postHref(post.slug)}>
+                {post.title}
+              </a>
+              <p>{post.summary}</p>
+            </article>
+          ))}
+        </div>
+
+        <div class="ledger-column">
+          {rightColumnPosts.map((post, index) => (
+            <article class:list={["ledger-story", index === 0 && "is-strong"]}>
+              <div class="ledger-meta">
+                <span>{formatDate(post.publishedAt)}</span>
+                <span>{post.readingMinutes} 分钟</span>
+              </div>
+              <a class="ledger-story-title" href={postHref(post.slug)}>
+                {post.title}
+              </a>
+              <p>{post.summary}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+
+      <Pagination currentPage={activePagination.currentPage} totalPages={activePagination.totalPages} kind="home" />
+    </section>
+
+    <aside class="ledger-side ledger-side-right">
+      <CategoryPanel title="分类目录" limit={8} />
+      <TagPanel title="主题索引" limit={14} />
+    </aside>
+  </section>
+</main>

@@ -121,14 +121,14 @@ function buildAdminBlocks() {
   return [
     heading1("博客后台管理"),
     paragraph("这个页面用于放置真实生产环境的内容入口、自动部署说明和管理用链接。建议保持私有，不对外公开。"),
-    callout("真实生产数据库继续使用你当前的博客数据库，不需要把它公开给别人复制。"),
+    callout("真实生产数据库继续使用你当前的博客内容数据库，不需要把它公开给别人复制。"),
     heading2("建议放在这里的内容"),
     bulleted("真实文章数据库入口"),
-    bulleted("关于页、友链等站点页面的维护说明"),
+    bulleted("关于页、友链页等站点页面的维护说明"),
     bulleted("Webhook / GitHub Actions / Cloudflare Worker 的配置记录"),
     bulleted("封面、资源、附件的整理规范"),
     heading2("生产库说明"),
-    paragraph("当前博客已经接通 Notion -> GitHub Actions -> GitHub Pages 的自动发布链路。你平时只需要在真实数据库中写作和修改内容。"),
+    paragraph("当前博客已经支持 Notion -> GitHub Actions -> GitHub Pages 的自动发布链路。你平时只需要在真实数据库中写作和修改内容。"),
     quote("这个页面是后台，不是模板。对外公开时请使用 Starter 页面和 Demo 数据库。")
   ];
 }
@@ -136,7 +136,7 @@ function buildAdminBlocks() {
 function buildStarterIntroBlocks() {
   return [
     heading1("Notion Astro Blog Starter"),
-    paragraph("这个页面是给别人复制的公开模板页。建议你后续在 Notion 前端把它公开，并开启“允许复制为模板”。"),
+    paragraph("这个页面是给别人复制的公开模板页。建议你在 Notion 前端把它公开，并开启“允许复制为模板”。"),
     callout("下面这个 Demo 数据库是最小可用示例。复制它后，只要填入自己的 Notion Token、数据库 ID 和站点地址，就能把博客跑起来。"),
     heading2("使用说明"),
     numbered("复制这个页面和 Demo 数据库到你自己的 Notion 工作区。"),
@@ -145,6 +145,7 @@ function buildStarterIntroBlocks() {
     numbered("运行 `npm install`。"),
     numbered("运行 `npm run sync:notion` 拉取内容。"),
     numbered("运行 `npm run dev` 本地预览，确认无误后推送到 GitHub。"),
+    numbered("如果你想用 Notion 管理站点信息和导航，再运行 `npm run setup:notion:site-config`。"),
     heading2("字段说明"),
     bulleted("标题：文章标题，必须填写。"),
     bulleted("链接名：文章 URL slug，例如 `hello-world`。"),
@@ -154,9 +155,10 @@ function buildStarterIntroBlocks() {
     bulleted("摘要：首页卡片和 SEO 描述使用。"),
     bulleted("推荐：可用于首页精选。"),
     bulleted("类型：区分“文章”和“页面”。"),
-    heading2("项目说明"),
-    paragraph("这是一个公开 starter 项目，目的是让别人拿到后也能快速复用。"),
-    paragraph("如果你要对外分享，建议同时公开 README 和自动部署文档。")
+    heading2("项目地址"),
+    paragraph("源码仓库：`https://github.com/huiiz/notion-astro-blog`"),
+    paragraph("发布仓库可以是当前仓库的 `gh-pages`，也可以是 `username.github.io` Pages 仓库。"),
+    paragraph("自动部署、Notion Webhook 和站点配置的完整说明可以直接参考 README 与 `docs/`。")
   ];
 }
 
@@ -175,7 +177,7 @@ async function ensureDemoEntries(databaseId) {
         标题: titleValue("欢迎使用 Notion Astro Blog"),
         链接名: richTextValue("welcome-to-notion-astro-blog"),
         状态: { select: { name: "已发布" } },
-        发布日期: { date: { start: "2026-04-27" } },
+        发布日期: { date: { start: "2026-05-01" } },
         标签: { multi_select: [{ name: "建站" }, { name: "Notion" }, { name: "Astro" }] },
         分类: { select: { name: "博客" } },
         摘要: richTextValue("这是一篇示例文章，用来帮助你确认 Notion 数据库字段、内容结构和 Astro 站点同步流程都已经正常工作。"),
@@ -186,9 +188,12 @@ async function ensureDemoEntries(databaseId) {
         paragraphBlock("欢迎，这是一篇模板示例文章。"),
         paragraphBlock("你可以直接修改这篇文章，也可以删除它之后开始写自己的第一篇内容。"),
         heading2("写作建议"),
-        bulletedBlock("页面封面请直接使用 Notion 页面顶部 Cover。"),
-        bulletedBlock("正文里可以直接插入图片、代码块、引用和分栏。"),
-        bulletedBlock("发布前把“状态”改成“已发布”。")
+        bulletedBlock("页面封面直接使用 Notion 页面顶部 Cover。"),
+        bulletedBlock("正文里可以直接插入图片、代码块、引用和附件。"),
+        bulletedBlock("发布前把“状态”改成“已发布”。"),
+        heading2("下一步"),
+        bulletedBlock("如果你只是先预览模板效果，保留这篇示例文章即可。"),
+        bulletedBlock("如果你已经准备接入真实内容，可以把它删掉，换成自己的文章。")
       ]
     });
   }
@@ -200,7 +205,7 @@ async function ensureDemoEntries(databaseId) {
         标题: titleValue("关于"),
         链接名: richTextValue("about"),
         状态: { select: { name: "已发布" } },
-        发布日期: { date: { start: "2026-04-27" } },
+        发布日期: { date: { start: "2026-05-01" } },
         标签: { multi_select: [{ name: "建站" }] },
         分类: { select: { name: "页面" } },
         摘要: richTextValue("一个示例页面，用于展示如何把单页内容也放进同一个 Notion 数据库里统一管理。"),
@@ -220,16 +225,16 @@ async function ensureDemoEntries(databaseId) {
         标题: titleValue("友链"),
         链接名: richTextValue("link"),
         状态: { select: { name: "已发布" } },
-        发布日期: { date: { start: "2026-04-27" } },
+        发布日期: { date: { start: "2026-05-01" } },
         标签: { multi_select: [{ name: "建站" }] },
         分类: { select: { name: "页面" } },
-        摘要: richTextValue("一个示例友链页，你可以在这里补充自己的友链说明或后续接入独立友链数据。"),
+        摘要: richTextValue("一个示例友链页，你可以在这里补充自己的友链说明，或者后续接入独立友链数据。"),
         推荐: { checkbox: false },
         类型: { select: { name: "页面" } }
       },
       children: [
         paragraphBlock("这个页面默认用于放置友情链接、合作伙伴或推荐站点。"),
-        paragraphBlock("如果你还没有友链内容，也可以先保留这页，后续再补。")
+        paragraphBlock("如果你暂时没有友链内容，也可以先保留这页，后续再补。")
       ]
     });
   }
@@ -380,7 +385,7 @@ function callout(content) {
     type: "callout",
     callout: {
       rich_text: richText(content),
-      icon: { emoji: "📕" }
+      icon: { emoji: "📝" }
     }
   };
 }

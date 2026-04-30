@@ -1,0 +1,383 @@
+.template-home-pulse {
+  display: grid;
+  gap: 1.6rem;
+}
+
+.template-home-pulse .pulse-banner {
+  display: grid;
+  grid-template-columns: 18rem minmax(0, 1fr) 18rem;
+  gap: 0.85rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(45, 54, 67, 0.12);
+  background: linear-gradient(135deg, #20252d, #2c3340 58%, #3a2b26);
+  color: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--theme-shadow-strong);
+}
+
+.template-home-pulse .pulse-brand,
+.template-home-pulse .pulse-cover-story,
+.template-home-pulse .pulse-bulletin {
+  min-height: 100%;
+}
+
+.template-home-pulse .pulse-brand {
+  display: grid;
+  align-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.template-home-pulse .pulse-kicker,
+.template-home-pulse .pulse-cover-label,
+.template-home-pulse .pulse-directory-label,
+.template-home-pulse .pulse-bulletin-head span,
+.template-home-pulse .pulse-story-index {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.template-home-pulse .pulse-brand h1,
+.template-home-pulse .pulse-cover-title,
+.template-home-pulse .pulse-bulletin-head h2,
+.template-home-pulse .pulse-edition-head h2,
+.template-home-pulse .pulse-story-title {
+  margin: 0;
+  font-family: var(--font-display);
+}
+
+.template-home-pulse .pulse-brand h1 {
+  font-size: clamp(2.9rem, 5vw, 4.8rem);
+  line-height: 0.94;
+}
+
+.template-home-pulse .pulse-brand p,
+.template-home-pulse .pulse-cover-body p,
+.template-home-pulse .pulse-edition-head p,
+.template-home-pulse .pulse-story-body p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.72;
+}
+
+.template-home-pulse .pulse-brand-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.template-home-pulse .pulse-brand-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.45rem;
+  padding: 0 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.template-home-pulse .pulse-brand-stats {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.template-home-pulse .pulse-brand-stats div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.template-home-pulse .pulse-brand-stats strong {
+  color: #fff;
+  font-size: 1.6rem;
+}
+
+.template-home-pulse .pulse-brand-stats span,
+.template-home-pulse .pulse-cover-meta,
+.template-home-pulse .pulse-bulletin-item span,
+.template-home-pulse .pulse-story-meta,
+.template-home-pulse .pulse-story-body p {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.86rem;
+}
+
+.template-home-pulse .pulse-cover-story {
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 18rem 1fr;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.template-home-pulse .pulse-cover-image,
+.template-home-pulse .pulse-cover-image img,
+.template-home-pulse .pulse-story-cover,
+.template-home-pulse .pulse-story-cover img {
+  width: 100%;
+  height: 100%;
+}
+
+.template-home-pulse .pulse-cover-image img,
+.template-home-pulse .pulse-story-cover img {
+  object-fit: cover;
+}
+
+.template-home-pulse .pulse-cover-body {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.15rem 1.2rem 1.25rem;
+}
+
+.template-home-pulse .pulse-cover-title {
+  color: #fff;
+  font-size: clamp(1.7rem, 2.3vw, 2.35rem);
+  line-height: 1.1;
+}
+
+.template-home-pulse .pulse-cover-meta,
+.template-home-pulse .pulse-story-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.template-home-pulse .pulse-bulletin {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.template-home-pulse .pulse-bulletin-head {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.template-home-pulse .pulse-bulletin-head h2 {
+  color: #fff;
+  font-size: 1.32rem;
+}
+
+.template-home-pulse .pulse-bulletin-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.template-home-pulse .pulse-bulletin-item {
+  display: grid;
+  grid-template-columns: 2.2rem minmax(0, 1fr);
+  gap: 0.85rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.template-home-pulse .pulse-bulletin-item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.template-home-pulse .pulse-bulletin-item strong {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1rem;
+}
+
+.template-home-pulse .pulse-bulletin-item p {
+  margin: 0.2rem 0 0;
+  color: #fff;
+  line-height: 1.45;
+}
+
+.template-home-pulse .pulse-content {
+  display: grid;
+  grid-template-columns: 16rem minmax(0, 1fr);
+  gap: 1.4rem;
+  align-items: start;
+}
+
+.template-home-pulse .pulse-directory {
+  position: sticky;
+  top: 5.8rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.template-home-pulse .pulse-directory-block {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid rgba(45, 54, 67, 0.1);
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.template-home-pulse .pulse-directory-label {
+  color: var(--theme-muted);
+}
+
+.template-home-pulse .pulse-directory-list {
+  display: grid;
+}
+
+.template-home-pulse .pulse-directory-list a {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid rgba(45, 54, 67, 0.12);
+}
+
+.template-home-pulse .pulse-directory-list a:first-child {
+  border-top: 0;
+}
+
+.template-home-pulse .pulse-directory-list span,
+.template-home-pulse .pulse-story-title {
+  color: var(--theme-text);
+}
+
+.template-home-pulse .pulse-directory-list small {
+  color: var(--theme-muted);
+}
+
+.template-home-pulse .pulse-tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.8rem;
+}
+
+.template-home-pulse .pulse-tag-cloud a {
+  padding: 0.32rem 0;
+  border-bottom: 1px solid rgba(212, 107, 73, 0.18);
+  color: var(--theme-color-deep);
+}
+
+.template-home-pulse .pulse-edition {
+  display: grid;
+  gap: 1rem;
+}
+
+.template-home-pulse .pulse-edition-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.4rem;
+}
+
+.template-home-pulse .pulse-edition-head h2 {
+  margin-top: 0.45rem;
+  color: var(--theme-text);
+  font-size: clamp(1.8rem, 2.6vw, 2.45rem);
+}
+
+.template-home-pulse .pulse-edition-head p {
+  max-width: 25rem;
+  color: var(--theme-muted);
+  font-size: 0.95rem;
+}
+
+.template-home-pulse .pulse-story-list {
+  display: grid;
+}
+
+.template-home-pulse .pulse-story {
+  display: grid;
+  grid-template-columns: 3.4rem 16rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1.15rem 0;
+  border-top: 1px solid rgba(45, 54, 67, 0.12);
+}
+
+.template-home-pulse .pulse-story:first-child {
+  border-top: 0;
+}
+
+.template-home-pulse .pulse-story-index {
+  color: rgba(45, 54, 67, 0.38);
+  padding-top: 0.12rem;
+}
+
+.template-home-pulse .pulse-story-cover {
+  min-height: 10.5rem;
+}
+
+.template-home-pulse .pulse-story-body {
+  display: grid;
+  gap: 0.55rem;
+  align-content: center;
+}
+
+.template-home-pulse .pulse-story-meta {
+  color: var(--theme-muted);
+}
+
+.template-home-pulse .pulse-story-title {
+  font-size: clamp(1.35rem, 1.8vw, 1.9rem);
+  line-height: 1.18;
+}
+
+.template-home-pulse .pulse-story-body p {
+  color: var(--theme-muted);
+}
+
+.template-home-pulse .pulse-story.is-reverse {
+  grid-template-columns: 3.4rem minmax(0, 1fr) 16rem;
+}
+
+.template-home-pulse .pulse-story.is-reverse .pulse-story-cover {
+  order: 3;
+}
+
+.template-home-pulse .pulse-story.is-text-only {
+  grid-template-columns: 3.4rem minmax(0, 1fr);
+}
+
+.template-home-pulse .pulse-story.is-text-only .pulse-story-title {
+  font-size: clamp(1.65rem, 2vw, 2.2rem);
+}
+
+#body-wrap[data-theme-preset="pulse"] #nav {
+  background: rgba(248, 245, 241, 0.9);
+  border-bottom: 1px solid rgba(45, 54, 67, 0.08);
+}
+
+#body-wrap[data-theme-preset="pulse"] .site-page {
+  border-radius: 0;
+}
+
+@media (max-width: 1320px) {
+  .template-home-pulse .pulse-banner,
+  .template-home-pulse .pulse-content,
+  .template-home-pulse .pulse-edition-head {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .template-home-pulse .pulse-directory {
+    position: static;
+  }
+}
+
+@media (max-width: 860px) {
+  .template-home-pulse .pulse-story,
+  .template-home-pulse .pulse-story.is-reverse,
+  .template-home-pulse .pulse-story.is-text-only {
+    grid-template-columns: 1fr;
+  }
+
+  .template-home-pulse .pulse-story.is-reverse .pulse-story-cover {
+    order: 0;
+  }
+
+  .template-home-pulse .pulse-brand h1 {
+    font-size: clamp(2.6rem, 13vw, 4.1rem);
+  }
+
+  .template-home-pulse .pulse-cover-story {
+    grid-template-rows: 15rem 1fr;
+  }
+}

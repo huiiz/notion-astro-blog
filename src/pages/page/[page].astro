@@ -1,0 +1,22 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { HOME_PAGE_SIZE, buildStaticPaginationPaths, paginateItems } from "../../lib/pagination";
+import { getAllPosts } from "../../lib/posts";
+import { themeConfig } from "../../lib/theme";
+import { getTemplateDefinition } from "../../templates";
+
+const allPosts = getAllPosts();
+
+export function getStaticPaths() {
+  return buildStaticPaginationPaths(getAllPosts().length, HOME_PAGE_SIZE);
+}
+
+const currentPage = Number(Astro.params.page || "1");
+const pagination = paginateItems(allPosts, currentPage, HOME_PAGE_SIZE);
+const template = getTemplateDefinition(themeConfig.preset);
+const HomeComponent = template.component;
+---
+
+<BaseLayout title={`${template.title} · 第 ${pagination.currentPage} 页`}>
+  <HomeComponent theme={themeConfig} posts={pagination.items} pagination={pagination} />
+</BaseLayout>

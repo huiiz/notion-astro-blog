@@ -23,7 +23,7 @@ const isLinkPage = page.slug === "link";
     <article id="page" class="reading-article">
       {page.html && <div class="post-content reading-content" set:html={page.html} />}
 
-      {isLinkPage && (
+      {isLinkPage && friendGroups.length > 0 && (
         <div class="friend-groups">
           {friendGroups.map((group) => (
             <section class="friend-group">

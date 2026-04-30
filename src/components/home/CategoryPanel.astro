@@ -1,0 +1,26 @@
+---
+import { getCategoryCounts, slugifyCategory } from "../../lib/posts";
+
+interface Props {
+  title?: string;
+  limit?: number;
+}
+
+const { title = "分类浏览", limit = 6 } = Astro.props;
+const categoryCounts = getCategoryCounts().slice(0, limit);
+---
+
+<section class="sidebar-card sidebar-section">
+  <div class="sidebar-section-head">
+    <h3>{title}</h3>
+    <a href={`${import.meta.env.BASE_URL}categories/`}>全部</a>
+  </div>
+  <div class="sidebar-category-list">
+    {categoryCounts.map((item) => (
+      <a href={`${import.meta.env.BASE_URL}categories/${slugifyCategory(item.name)}/`}>
+        <span>{item.name}</span>
+        <small>{item.count}</small>
+      </a>
+    ))}
+  </div>
+</section>

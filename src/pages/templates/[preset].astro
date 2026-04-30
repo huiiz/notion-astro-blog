@@ -1,0 +1,21 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { HOME_PAGE_SIZE, paginateItems } from "../../lib/pagination";
+import { getAllPosts } from "../../lib/posts";
+import { createThemeConfig, type ThemePresetName } from "../../lib/theme";
+import { getTemplateDefinition, getTemplateDefinitions } from "../../templates";
+
+export function getStaticPaths() {
+  return getTemplateDefinitions().map((template) => ({ params: { preset: template.id } }));
+}
+
+const preset = Astro.params.preset as ThemePresetName;
+const theme = createThemeConfig({ preset });
+const template = getTemplateDefinition(preset);
+const HomeComponent = template.component;
+const pagination = paginateItems(getAllPosts(), 1, HOME_PAGE_SIZE);
+---
+
+<BaseLayout title={`${template.title} 主题预览`} description={`预览 ${template.title} 主题`} theme={theme}>
+  <HomeComponent theme={theme} posts={pagination.items} pagination={pagination} previewPreset={preset} />
+</BaseLayout>

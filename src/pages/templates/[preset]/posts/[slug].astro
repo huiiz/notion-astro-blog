@@ -1,0 +1,232 @@
+---
+import PageHeader from "../../../../components/PageHeader.astro";
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+import { createThemeConfig, type ThemePresetName } from "../../../../lib/theme";
+import {
+  formatDate,
+  getAdjacentPosts,
+  getAllPosts,
+  getPostBySlug,
+  getRelatedPosts,
+  slugifyCategory,
+  slugifyTag
+} from "../../../../lib/posts";
+import { getReadableToc } from "../../../../lib/toc";
+import { getTemplateDefinition, getTemplateDefinitions } from "../../../../templates";
+
+export function getStaticPaths() {
+  const presets = getTemplateDefinitions().map((template) => template.id) as ThemePresetName[];
+
+  return presets.flatMap((preset) =>
+    getAllPosts().map((post) => ({
+      params: { preset, slug: post.slug },
+      props: {
+        preset,
+        post,
+        adjacent: getAdjacentPosts(post.slug),
+        relatedPosts: getRelatedPosts(post.slug, 6)
+      }
+    }))
+  );
+}
+
+const { preset, post, adjacent, relatedPosts } = Astro.props as {
+  preset: ThemePresetName;
+  post: NonNullable<ReturnType<typeof getPostBySlug>>;
+  adjacent: ReturnType<typeof getAdjacentPosts>;
+  relatedPosts: ReturnType<typeof getRelatedPosts>;
+};
+
+const theme = createThemeConfig({ preset });
+const template = getTemplateDefinition(preset);
+const tocHeadings = getReadableToc(post.headings, {
+  maxLevel: 3,
+  maxItems: preset === "ledger" ? 14 : 18
+});
+const hasToc = tocHeadings.length > 0;
+const isStandaloneEmbed =
+  post.html.includes("/mllm-survey-cn.html") ||
+  (post.headings.length === 0 && post.html.trim().startsWith('<div class="embed-frame"><iframe'));
+const renderedHtml = isStandaloneEmbed
+  ? post.html.replace('class="embed-frame"', 'class="embed-frame embed-frame-standalone"')
+  : post.html;
+const previewPostHref = (slug: string) => `${import.meta.env.BASE_URL}templates/${preset}/posts/${slug}/`;
+---
+
+<BaseLayout title={`${post.title} · ${template.title}`} description={post.summary} theme={theme}>
+  <PageHeader title={post.title} subtitle={post.summary} />
+
+  <main class="layout layout-reading layout-reading-with-toc" id="content-inner">
+    <div class:list={["reading-shell", hasToc && "has-toc"]}>
+      <article class:list={["reading-article", isStandaloneEmbed && "is-standalone-embed"]} id="post">
+        <header class="reading-header">
+          <div class="reading-meta">
+            <span>发布于 {formatDate(post.publishedAt)}</span>
+            <span>阅读约 {post.readingMinutes} 分钟</span>
+          </div>
+
+          {post.categories.length > 0 && (
+            <div class="reading-categories">
+              {post.categories.map((category: string) => (
+                <a href={`${import.meta.env.BASE_URL}categories/${slugifyCategory(category)}/`}>{category}</a>
+              ))}
+            </div>
+          )}
+
+          <div class="reading-tags">
+            {post.tags.map((tag: string) => (
+              <a href={`${import.meta.env.BASE_URL}tags/${slugifyTag(tag)}/`}>#{tag}</a>
+            ))}
+          </div>
+        </header>
+
+        <div
+          class:list={["post-content", "reading-content", isStandaloneEmbed && "reading-content-standalone"]}
+          set:html={renderedHtml}
+        />
+
+        <nav class="reading-pagination">
+          <div>
+            <span>上一篇</span>
+            {adjacent.newer ? (
+              <a href={previewPostHref(adjacent.newer.slug)}>{adjacent.newer.title}</a>
+            ) : (
+              <p>已经是最新一篇</p>
+            )}
+          </div>
+          <div>
+            <span>下一篇</span>
+            {adjacent.older ? (
+              <a href={previewPostHref(adjacent.older.slug)}>{adjacent.older.title}</a>
+            ) : (
+              <p>已经是最早一篇</p>
+            )}
+          </div>
+        </nav>
+
+        {relatedPosts.length > 0 && (
+          <section class="related-posts">
+            <div class="related-posts-head">
+              <span class="section-kicker">延伸阅读</span>
+              <h3>相关文章</h3>
+            </div>
+            <div class="related-post-list">
+              {relatedPosts.map((item) => (
+                <a href={previewPostHref(item.slug)}>{item.title}</a>
+              ))}
+            </div>
+          </section>
+        )}
+      </article>
+
+      {hasToc && (
+        <aside class="reading-toc" aria-label="文章目录">
+          <div class="reading-toc-card">
+            <div class="reading-toc-head">
+              <span class="section-kicker">目录</span>
+              <strong>本页导航</strong>
+            </div>
+            <nav class="reading-toc-list">
+              {tocHeadings.map((heading) => (
+                <a class={`toc-level-${heading.level}`} href={`#${heading.id}`} data-toc-link={heading.id}>
+                  {heading.text}
+                </a>
+              ))}
+            </nav>
+          </div>
+        </aside>
+      )}
+    </div>
+
+    <button class="back-to-top" type="button" aria-label="回到顶部" data-back-to-top>
+      回到顶部
+    </button>
+  </main>
+
+  <script is:inline>
+    const backToTop = document.querySelector("[data-back-to-top]");
+    const tocLinks = [...document.querySelectorAll("[data-toc-link]")];
+    const headings = tocLinks
+      .map((link) => {
+        const id = link.getAttribute("data-toc-link");
+        return id ? document.getElementById(id) : null;
+      })
+      .filter(Boolean);
+    const embeddedFrames = [...document.querySelectorAll(".embed-frame iframe")];
+    const isStandaloneEmbedPage = document.querySelector(".reading-content-standalone") !== null;
+
+    const updateBackToTop = () => {
+      if (!backToTop) return;
+      backToTop.classList.toggle("is-visible", window.scrollY > 560);
+    };
+
+    backToTop?.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    const setActiveToc = () => {
+      if (!tocLinks.length || !headings.length) return;
+
+      let currentId = headings[0]?.id || "";
+      for (const heading of headings) {
+        if (window.scrollY >= heading.offsetTop - 180) {
+          currentId = heading.id;
+        }
+      }
+
+      for (const link of tocLinks) {
+        link.classList.toggle("is-active", link.getAttribute("data-toc-link") === currentId);
+      }
+    };
+
+    const markEmbeddedFrame = (iframe) => {
+      try {
+        const doc = iframe.contentDocument;
+        if (!doc) return;
+        doc.body.classList.add("is-embedded");
+      } catch {
+        // Ignore cross-document access failures.
+      }
+    };
+
+    const resizeEmbeddedFrame = (iframe) => {
+      if (isStandaloneEmbedPage) return;
+
+      try {
+        const doc = iframe.contentDocument;
+        if (!doc) return;
+        const height = Math.max(
+          doc.body.scrollHeight,
+          doc.documentElement.scrollHeight,
+          doc.body.offsetHeight,
+          doc.documentElement.offsetHeight
+        );
+        if (height) {
+          iframe.style.height = `${height}px`;
+        }
+      } catch {
+        // Ignore cross-document access failures.
+      }
+    };
+
+    for (const iframe of embeddedFrames) {
+      iframe.addEventListener("load", () => {
+        markEmbeddedFrame(iframe);
+        resizeEmbeddedFrame(iframe);
+      });
+      markEmbeddedFrame(iframe);
+      resizeEmbeddedFrame(iframe);
+    }
+
+    window.addEventListener("scroll", updateBackToTop, { passive: true });
+    window.addEventListener("scroll", setActiveToc, { passive: true });
+    window.addEventListener("resize", () => {
+      for (const iframe of embeddedFrames) resizeEmbeddedFrame(iframe);
+      setActiveToc();
+      updateBackToTop();
+    });
+
+    updateBackToTop();
+    setActiveToc();
+  </script>
+</BaseLayout>

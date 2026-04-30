@@ -9,6 +9,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "sync:notion": "node scripts/fetch-notion.mjs",
+    "setup:notion:site-config": "node scripts/setup-notion-site-config.mjs",
+    "clean:notion": "node scripts/clean-notion-html-artifacts.mjs",
     "migrate:legacy": "node scripts/migrate-legacy-content.mjs",
     "setup:notion:starter": "node scripts/setup-notion-starter.mjs"
   },

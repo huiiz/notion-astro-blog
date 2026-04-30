@@ -1,0 +1,178 @@
+---
+import Pagination from "../../components/Pagination.astro";
+import { HOME_PAGE_SIZE, paginateItems, type PaginationState } from "../../lib/pagination";
+import type { BlogPost } from "../../lib/posts";
+import {
+  formatDate,
+  getAllCategories,
+  getAllPosts,
+  getAllTags,
+  getCategoryCounts,
+  getDefaultCover,
+  getTagCounts,
+  slugifyCategory,
+  slugifyTag
+} from "../../lib/posts";
+import { siteConfig } from "../../lib/site";
+import type { ThemeConfig } from "../../lib/theme";
+import "./styles.css";
+
+interface Props {
+  theme: ThemeConfig;
+  posts?: BlogPost[];
+  pagination?: PaginationState<BlogPost>;
+  previewPreset?: string;
+}
+
+const { theme, posts, pagination, previewPreset } = Astro.props;
+const fallbackPagination = pagination ?? paginateItems(getAllPosts(), 1, HOME_PAGE_SIZE);
+const visiblePosts = posts?.length ? posts : fallbackPagination.items;
+const activePagination = pagination ?? fallbackPagination;
+const feature = visiblePosts[0];
+const spotlightPosts = visiblePosts.slice(1, 4);
+const feedPosts = visiblePosts.slice(4);
+const categoryCounts = getCategoryCounts().slice(0, 6);
+const tagCounts = getTagCounts().slice(0, 8);
+const stats = [
+  { label: "文章", value: String(getAllPosts().length) },
+  { label: "标签", value: String(getAllTags().length) },
+  { label: "分类", value: String(getAllCategories().length) }
+];
+const postHref = (slug: string) =>
+  previewPreset
+    ? `${import.meta.env.BASE_URL}templates/${previewPreset}/posts/${slug}/`
+    : `${import.meta.env.BASE_URL}posts/${slug}/`;
+---
+
+<main class:list={["layout", "template-home", `template-home-${theme.preset}`, "pulse-layout"]} id="content-inner">
+  <section class="pulse-banner">
+    <div class="pulse-brand">
+      <span class="pulse-kicker">HUII / Journal</span>
+      <h1>{siteConfig.title}</h1>
+      <p>{siteConfig.description}</p>
+
+      <div class="pulse-brand-links">
+        <a href={`${import.meta.env.BASE_URL}archive/`}>全部文章</a>
+        <a href={`${import.meta.env.BASE_URL}about/`}>关于</a>
+        <a href={siteConfig.profile} target="_blank" rel="noreferrer">主页</a>
+      </div>
+
+      <div class="pulse-brand-stats">
+        {stats.map((item) => (
+          <div>
+            <strong>{item.value}</strong>
+            <span>{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {feature && (
+      <article class="pulse-cover-story">
+        <a class="pulse-cover-image" href={postHref(feature.slug)}>
+          <img src={getDefaultCover(feature)} alt={feature.title} loading="lazy" />
+        </a>
+
+        <div class="pulse-cover-body">
+          <span class="pulse-cover-label">Cover Story</span>
+          <a class="pulse-cover-title" href={postHref(feature.slug)}>
+            {feature.title}
+          </a>
+          <p>{feature.summary}</p>
+          <div class="pulse-cover-meta">
+            <span>{formatDate(feature.publishedAt)}</span>
+            <span>{feature.readingMinutes} 分钟</span>
+          </div>
+        </div>
+      </article>
+    )}
+
+    <aside class="pulse-bulletin">
+      <div class="pulse-bulletin-head">
+        <span>Recent</span>
+        <h2>近期速览</h2>
+      </div>
+
+      <div class="pulse-bulletin-list">
+        {spotlightPosts.map((post, index) => (
+          <a class="pulse-bulletin-item" href={postHref(post.slug)}>
+            <strong>{String(index + 1).padStart(2, "0")}</strong>
+            <div>
+              <span>{formatDate(post.publishedAt)}</span>
+              <p>{post.title}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </aside>
+  </section>
+
+  <section class="pulse-content">
+    <aside class="pulse-directory">
+      <section class="pulse-directory-block">
+        <span class="pulse-directory-label">分类</span>
+        <div class="pulse-directory-list">
+          {categoryCounts.map((item) => (
+            <a href={`${import.meta.env.BASE_URL}categories/${slugifyCategory(item.name)}/`}>
+              <span>{item.name}</span>
+              <small>{item.count}</small>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section class="pulse-directory-block">
+        <span class="pulse-directory-label">标签</span>
+        <div class="pulse-tag-cloud">
+          {tagCounts.map((item) => (
+            <a href={`${import.meta.env.BASE_URL}tags/${slugifyTag(item.name)}/`}>{item.name}</a>
+          ))}
+        </div>
+      </section>
+    </aside>
+
+    <section class="pulse-edition">
+      <div class="pulse-edition-head">
+        <div>
+          <span class="pulse-directory-label">Edition</span>
+          <h2>文章流</h2>
+        </div>
+        <p>按时间顺序排开，用封面故事、速览和正文列表组织整个首页。</p>
+      </div>
+
+      <div class="pulse-story-list">
+        {feedPosts.map((post, index) => (
+          <article
+            class:list={[
+              "pulse-story",
+              index % 4 === 1 && "is-text-only",
+              index % 2 === 1 && "is-reverse"
+            ]}
+          >
+            <span class="pulse-story-index">{String(index + 4).padStart(2, "0")}</span>
+
+            {index % 4 !== 1 && (
+              <a class="pulse-story-cover" href={postHref(post.slug)}>
+                <img src={getDefaultCover(post)} alt={post.title} loading="lazy" />
+              </a>
+            )}
+
+            <div class="pulse-story-body">
+              <div class="pulse-story-meta">
+                <span>{formatDate(post.publishedAt)}</span>
+                <span>{post.readingMinutes} 分钟</span>
+                {post.categories[0] && <span>{post.categories[0]}</span>}
+              </div>
+              <a class="pulse-story-title" href={postHref(post.slug)}>
+                {post.title}
+              </a>
+              <p>{post.summary}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <Pagination currentPage={activePagination.currentPage} totalPages={activePagination.totalPages} kind="home" />
+    </section>
+  </section>
+</main>

@@ -1,0 +1,25 @@
+---
+import { getTagCounts, slugifyTag } from "../../lib/posts";
+
+interface Props {
+  title?: string;
+  limit?: number;
+}
+
+const { title = "常写主题", limit = 12 } = Astro.props;
+const tagCounts = getTagCounts().slice(0, limit);
+---
+
+<section class="sidebar-card sidebar-section">
+  <div class="sidebar-section-head">
+    <h3>{title}</h3>
+    <a href={`${import.meta.env.BASE_URL}tags/`}>全部</a>
+  </div>
+  <div class="sidebar-tag-cloud">
+    {tagCounts.map((item) => (
+      <a href={`${import.meta.env.BASE_URL}tags/${slugifyTag(item.name)}/`}>
+        <span>{item.name}</span>
+      </a>
+    ))}
+  </div>
+</section>

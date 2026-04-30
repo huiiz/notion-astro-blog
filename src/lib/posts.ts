@@ -1,6 +1,8 @@
 import generatedPosts from "../data/generated/posts.json";
 import samplePosts from "../data/sample-posts.json";
 import { prefixHtmlAssetPaths, withBasePath } from "./paths";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 
 export type PostHeading = {
   level: 2 | 3 | 4;
@@ -183,11 +185,13 @@ export function formatMonth(date: string): string {
 }
 
 export function getDefaultCover(post: BlogPost): string {
-  return withBasePath(normalizeAssetPath(post.cover || "/img/index.png"));
+  return withBasePath(normalizeAssetPath(post.cover || "/img/starter-cover.svg"));
 }
 
 function enrichPost(post: RawPost): BlogPost {
-  const normalizedHtml = normalizeImportedHtml(post.html);
+  const normalizedHtml = stripMissingAssetMarkup(
+    stripAssetCacheMarkers(rewriteLegacyAssetCachePaths(rewriteCachedAssetBlocks(normalizeImportedHtml(post.html))))
+  );
   const { html, headings } = enrichHtml(prefixHtmlAssetPaths(normalizedHtml));
   const contentText = stripHtml(html);
   const charCount = contentText.replace(/\s+/g, "").length;
@@ -251,8 +255,97 @@ function normalizeImportedHtml(html: string): string {
       /(["'(])(?:[A-Za-z]:)?[\\/].*?[\\/]public[\\/]mllm-survey-cn\.html/gi,
       '$1/mllm-survey-cn.html'
     )
+    .replace(/<(strong|em|u|s|p|li|blockquote|figcaption|h[2-4]|code)\s+([^<]+?)<\/\1/gi, "<$1>$2</$1>")
+    .replace(/<(strong|em|u|s|p|li|blockquote|figcaption|h[2-4])\s+([^>]+?)<\/\1>/gi, "<$1>$2</$1>")
+    .replace(/<\/([a-z])>([a-z0-9-]+)>/gi, "</$1$2>")
+    .replace(/<([a-z])>([a-z0-9-]+)>/gi, "<$1$2>")
+    .replace(/<u>l>/gi, "<ul>")
+    .replace(/<\/u>l>/gi, "</ul>")
+    .replace(/<o>l>/gi, "<ol>")
+    .replace(/<\/o>l>/gi, "</ol>")
     .replace(/<p>\s*<\/p>/g, "")
     .replace(/<li>\s*<\/li>/g, "");
+}
+
+function rewriteCachedAssetBlocks(html: string): string {
+  const assetMap = new Map<string, string>();
+  let nextHtml = html;
+
+  nextHtml = nextHtml.replace(
+    /<figure><img src="([^"]+)" alt="__ASSET_CACHE__:(\/[^"]+)" \/><figcaption>__ASSET_CACHE__:[^<]+<\/figcaption><\/figure>/gi,
+    (_match, notionUrl, legacyPath) => {
+      assetMap.set(normalizeLegacyAssetKey(legacyPath), notionUrl);
+      return "";
+    }
+  );
+
+  nextHtml = nextHtml.replace(
+    /<p><a href="([^"]+)"(?:\s+target="[^"]*")?(?:\s+rel="[^"]*")?>__ASSET_CACHE__:(\/[^<]+)<\/a><\/p>/gi,
+    (_match, notionUrl, legacyPath) => {
+      assetMap.set(normalizeLegacyAssetKey(legacyPath), notionUrl);
+      return "";
+    }
+  );
+
+  if (!assetMap.size) {
+    return nextHtml;
+  }
+
+  return nextHtml.replace(
+    /((?:src|href)=["'])(\/(?:img|data|survey-assets)\/[^"'?#>]+(?:\?[^"'>]*)?)(["'])/gi,
+    (fullMatch, prefix, legacyPath, suffix) => {
+      const replacement = assetMap.get(normalizeLegacyAssetKey(legacyPath));
+      return replacement ? `${prefix}${replacement}${suffix}` : fullMatch;
+    }
+  );
+}
+
+function rewriteLegacyAssetCachePaths(html: string): string {
+  return html.replace(
+    /((?:src|href)=["'])\/notion\/[^/"']+\/(?:image|attachment)\/__ASSET_CACHE__-((?:img|data|survey-assets))-(.+?)-[0-9a-f]{12}\.[a-z0-9]+((?:\?[^"'>]*)?)(["'])/gi,
+    (_match, prefix, folder, fileName, search, suffix) => `${prefix}/${folder}/${fileName}${search}${suffix}`
+  );
+}
+
+function stripAssetCacheMarkers(html: string): string {
+  return html
+    .replace(
+      /<figure>\s*<img[^>]*alt="__ASSET_CACHE__:[^"]*"[^>]*>\s*(?:<figcaption>__ASSET_CACHE__:[\s\S]*?<\/figcaption>)?\s*<\/figure>/gi,
+      ""
+    )
+    .replace(/<p>\s*<a href="[^"]+"(?:\s+target="[^"]*")?(?:\s+rel="[^"]*")?>__ASSET_CACHE__:[\s\S]*?<\/a>\s*<\/p>/gi, "")
+    .replace(/<p>\s*__ASSET_CACHE__:[\s\S]*?<\/p>/gi, "")
+    .replace(/__ASSET_CACHE__:[^<\s"]+/gi, "")
+    .replace(/<p>\s*<\/p>/g, "")
+    .replace(/<li>\s*<\/li>/g, "");
+}
+
+function stripMissingAssetMarkup(html: string): string {
+  let nextHtml = html;
+
+  nextHtml = nextHtml.replace(
+    /<figure>\s*<img src="([^"]+)"[^>]*>\s*(?:<figcaption>[\s\S]*?<\/figcaption>)?\s*<\/figure>/gi,
+    (match, src) => (assetReferenceExists(src) ? match : "")
+  );
+
+  nextHtml = nextHtml.replace(
+    /<img src="([^"]+)"[^>]*\/?>/gi,
+    (match, src) => (assetReferenceExists(src) ? match : "")
+  );
+
+  nextHtml = nextHtml.replace(
+    /<a href="([^"]+)"([^>]*)>([\s\S]*?)<\/a>/gi,
+    (match, href, _attrs, innerHtml) => {
+      if (assetReferenceExists(href)) {
+        return match;
+      }
+
+      const text = stripHtml(innerHtml).trim();
+      return text || "";
+    }
+  );
+
+  return nextHtml.replace(/<p>\s*<\/p>/g, "").replace(/<li>\s*<\/li>/g, "");
 }
 
 function repairPseudoHtml(segment: string): string {
@@ -271,6 +364,7 @@ function repairPseudoHtml(segment: string): string {
     .replace(/\/survey assets\//gi, "/survey-assets/")
     .replace(/openclaw survey cn\.pdf/gi, "openclaw-survey-cn.pdf")
     .replace(/openclaw survey\.pdf/gi, "openclaw_survey.pdf")
+    .replace(/&lt;(strong|em|u|s|p|li|blockquote|figcaption|h[2-4]|code)\s+([^<]+?)&lt;\/\1/gi, "<$1>$2</$1>")
     .replace(/&lt;strong\s+([^<]+?)&lt;\/strong/gi, "<strong>$1</strong>")
     .replace(/&lt;(em|u|s|p|li|blockquote|figcaption|h[2-4])\s+([^<]+?)&lt;\/\1/gi, "<$1>$2</$1>")
     .replace(/&lt;code\s+([^<]+?)&lt;\/code/gi, "<code>$1</code>")
@@ -287,14 +381,46 @@ function repairPseudoHtml(segment: string): string {
     .replace(/&lt;\/pre/gi, "</pre>")
     .replace(/&lt;code\s+class="([^"]+)"\s*/gi, '<code class="$1">')
     .replace(/&lt;\/code/gi, "</code>")
-    .replace(/&lt;\/(p|li|ul|ol|blockquote|strong|em|u|s|a|figure|figcaption|h[2-4])/gi, "</$1>")
+    .replace(/&lt;\/(blockquote|figcaption|figure|strong|em|code|pre|ul|ol|li|p|a|u|s|h[2-4])/gi, "</$1>")
     .replace(/&lt;(ul|ol|blockquote|figure)\b/gi, "<$1>")
+    .replace(/<(strong|em|u|s|p|li|blockquote|figcaption|h[2-4])\s+([^>]+?)<\/\1>/gi, "<$1>$2</$1>")
+    .replace(/<\/([a-z])>([a-z0-9-]+)>/gi, "</$1$2>")
+    .replace(/<([a-z])>([a-z0-9-]+)>/gi, "<$1$2>")
     .replace(/<a href="([^"]+)" target="_blank" rel="noreferrer">([^<]+)<\/a>/gi, (_match, href, text) => {
       if (/\.(pdf|zip|rar)$/i.test(href)) {
         return `<a href="${href}">${text}</a>`;
       }
       return `<a href="${href}" target="_blank" rel="noreferrer">${text}</a>`;
     });
+}
+
+function normalizeLegacyAssetKey(value: string): string {
+  return decodeURIComponent(value || "")
+    .replace(/\\/g, "/")
+    .replace(/\/survey assets\//gi, "/survey-assets/")
+    .replace(/\?.*$/, "")
+    .replace(/#.*$/, "")
+    .trim()
+    .toLowerCase();
+}
+
+function assetReferenceExists(value: string): boolean {
+  const assetPath = normalizeAssetLookupPath(value);
+  if (!assetPath) return true;
+
+  return existsSync(resolve("public", `.${assetPath}`));
+}
+
+function normalizeAssetLookupPath(value: string): string {
+  const normalized = decodeURIComponent(value || "")
+    .replace(/\\/g, "/")
+    .replace(/\?.*$/, "")
+    .replace(/#.*$/, "")
+    .trim();
+
+  return /^(\/(?:img|data|survey-assets|notion)\/.+|\/mllm-survey-cn\.html)$/i.test(normalized)
+    ? normalized
+    : "";
 }
 
 function stripHtml(value: string): string {

@@ -1,0 +1,47 @@
+---
+import { formatDate, getDefaultCover, slugifyCategory, slugifyTag } from "../lib/posts";
+
+interface Props {
+  post: any;
+  postBasePath?: string;
+}
+
+const { post, postBasePath = "posts" } = Astro.props;
+const previewTags = post.tags.slice(0, 2);
+const previewCategory = post.categories[0];
+const normalizedBasePath = postBasePath.replace(/^\/+|\/+$/g, "");
+const postHref = `${import.meta.env.BASE_URL}${normalizedBasePath}/${post.slug}/`;
+---
+
+<article class="post-list-item">
+  <a class="post-list-item-cover" href={postHref} title={post.title}>
+    <img src={getDefaultCover(post)} alt={post.title} loading="lazy" />
+  </a>
+
+  <div class="post-list-item-body">
+    <div class="post-list-item-meta">
+      <span>{formatDate(post.publishedAt)}</span>
+      <span>{post.readingMinutes} 分钟</span>
+      {previewCategory && (
+        <a href={`${import.meta.env.BASE_URL}categories/${slugifyCategory(previewCategory)}/`}>
+          {previewCategory}
+        </a>
+      )}
+    </div>
+
+    <a class="post-list-item-title" href={postHref} title={post.title}>
+      {post.title}
+    </a>
+
+    <p class="post-list-item-summary">{post.summary}</p>
+
+    <div class="post-list-item-footer">
+      <div class="post-list-item-tags">
+        {previewTags.map((tag: string) => (
+          <a href={`${import.meta.env.BASE_URL}tags/${slugifyTag(tag)}/`}>#{tag}</a>
+        ))}
+      </div>
+      <a class="post-list-item-link" href={postHref}>阅读全文</a>
+    </div>
+  </div>
+</article>

@@ -1,8 +1,14 @@
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 
-const site = process.env.SITE_URL || "https://example.github.io";
-const base = process.env.BASE_PATH || "";
+const site = process.env.SITE_URL || "https://example.com";
+const base = normalizeBasePath(process.env.BASE_PATH || "");
+
+function normalizeBasePath(value) {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === "/") return "";
+  return `/${trimmed.replace(/^\/+|\/+$/g, "")}/`;
+}
 
 export default defineConfig({
   site,

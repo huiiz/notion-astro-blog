@@ -9,6 +9,7 @@ import {
   slugifyCategory,
   slugifyTag
 } from "../../lib/posts";
+import { getReadableToc } from "../../lib/toc";
 
 export function getStaticPaths() {
   return getAllPosts().map((post) => ({
@@ -22,7 +23,8 @@ export function getStaticPaths() {
 }
 
 const { post, adjacent, relatedPosts } = Astro.props;
-const hasToc = post.headings.length > 0;
+const tocHeadings = getReadableToc(post.headings, { maxLevel: 3, maxItems: 18 });
+const hasToc = tocHeadings.length > 0;
 const isStandaloneEmbed =
   post.html.includes("/mllm-survey-cn.html") ||
   (post.headings.length === 0 && post.html.trim().startsWith('<div class="embed-frame"><iframe'));
@@ -86,7 +88,7 @@ const renderedHtml = isStandaloneEmbed
           <section class="related-posts">
             <div class="related-posts-head">
               <span class="section-kicker">延伸阅读</span>
-              <h3>相关内容</h3>
+              <h3>相关文章</h3>
             </div>
             <div class="related-post-list">
               {relatedPosts.map((item) => (
@@ -105,7 +107,7 @@ const renderedHtml = isStandaloneEmbed
               <strong>本页导航</strong>
             </div>
             <nav class="reading-toc-list">
-              {post.headings.map((heading) => (
+              {tocHeadings.map((heading) => (
                 <a class={`toc-level-${heading.level}`} href={`#${heading.id}`} data-toc-link={heading.id}>
                   {heading.text}
                 </a>
@@ -124,7 +126,12 @@ const renderedHtml = isStandaloneEmbed
   <script is:inline>
     const backToTop = document.querySelector("[data-back-to-top]");
     const tocLinks = [...document.querySelectorAll("[data-toc-link]")];
-    const headings = [...document.querySelectorAll(".reading-content h2[id], .reading-content h3[id], .reading-content h4[id]")];
+    const headings = tocLinks
+      .map((link) => {
+        const id = link.getAttribute("data-toc-link");
+        return id ? document.getElementById(id) : null;
+      })
+      .filter(Boolean);
     const embeddedFrames = [...document.querySelectorAll(".embed-frame iframe")];
     const isStandaloneEmbedPage = document.querySelector(".reading-content-standalone") !== null;
 
